@@ -3,19 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
-    <title>오키나와 완벽 맞춤형 여행 플래너 (태블릿 버전)</title>
+    <title>오키나와 완벽 맞춤형 여행 플래너</title>
+    <!-- Pretendard 폰트 추가 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     
-    <!-- Flatpickr -->
+    <!-- Flatpickr (달력 라이브러리) 추가 -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/ko.js"></script>
 
     <style>
+        /* 부드러운 Pretendard 폰트 기본 적용 */
+        body {
+            font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif !important;
+        }
+
         .line-clamp-2 {
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -34,85 +41,48 @@
             align-items: center;
             justify-content: center;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 14px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
             border: 2px solid white;
         }
-        input, select, textarea { font-size: 16px !important; }
+        /* iOS 등에서 화면 확대 방지 */
+        input, select, textarea { font-size: 14px !important; }
+        /* Flatpickr 달력 최상위 노출 */
         .flatpickr-calendar { z-index: 9999 !important; font-family: inherit; }
     </style>
 </head>
-<body class="bg-slate-200 text-slate-800 font-sans h-screen flex flex-col overflow-hidden min-w-[768px]">
+<body class="bg-slate-50 text-slate-800 relative">
 
     <!-- Header -->
-    <header class="z-[40] bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-md shrink-0">
-        <div class="px-6 py-3 flex items-center justify-between">
-            <h1 class="text-xl sm:text-2xl font-bold flex items-center gap-2">
-                <i class="fa-solid fa-plane-departure"></i> 오키나와 플래너
+    <header class="sticky top-0 z-[40] bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-md">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col items-center justify-center">
+            <h1 class="text-2xl sm:text-3xl font-bold flex items-center justify-center gap-2">
+                <i class="fa-solid fa-plane-departure"></i> 오키나와 자유여행 플래너
             </h1>
-            <div class="flex items-center gap-3">
-                <div id="header-date-trigger" class="cursor-pointer hover:bg-white/25 transition bg-white/15 px-4 py-1.5 rounded-full backdrop-blur-sm text-sm font-medium text-cyan-50 flex items-center shadow-inner tracking-tight" title="클릭하여 날짜 변경하기">
+            <div class="flex items-center justify-center gap-2 mt-3">
+                <div id="header-date-trigger" class="cursor-pointer hover:bg-white/25 transition bg-white/15 px-3 py-1.5 rounded-full backdrop-blur-sm text-sm sm:text-base font-medium text-cyan-50 flex items-center shadow-inner tracking-tight" title="클릭하여 날짜 변경하기">
                     <i class="fa-regular fa-calendar-check mr-2 text-cyan-200"></i>
                     <span id="header-date-display">2026. 12. 27. - 2027. 01. 03.</span>
                 </div>
-                <button onclick="openSettingsModal()" class="bg-white/20 hover:bg-white text-white hover:text-cyan-700 w-10 h-10 rounded-full transition shadow-sm flex items-center justify-center border border-white/30" title="일정 및 관리 설정">
+                <button onclick="openSettingsModal()" class="bg-white/20 hover:bg-white text-white hover:text-cyan-700 w-9 h-9 rounded-full transition shadow-sm flex items-center justify-center border border-white/30" title="일정 및 관리 설정">
                     <i class="fa-solid fa-gear text-lg"></i>
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- 3-Column Main Layout -->
-    <main class="flex flex-1 overflow-hidden w-full max-w-[1600px] mx-auto bg-white">
-        
-        <!-- Left Sidebar: Days -->
-        <aside class="w-32 sm:w-40 shrink-0 bg-slate-50 border-r border-slate-200 flex flex-col overflow-y-auto">
-            <div class="p-3 text-xs font-bold text-slate-500 uppercase tracking-wider mb-1"><i class="fa-solid fa-list-check mr-1"></i>여행 일자</div>
-            <div id="left-sidebar" class="flex flex-col gap-2 px-3 pb-6 hide-scrollbar">
-                <!-- JS 렌더링 -->
-            </div>
-        </aside>
-
-        <!-- Middle Content: Itinerary -->
-        <section class="flex-1 flex flex-col bg-white overflow-hidden border-r border-slate-200 relative shadow-[inset_0_0_15px_rgba(0,0,0,0.03)]" id="middle-content">
-            <div class="flex-1 overflow-y-auto hide-scrollbar p-0" id="day-content">
-                <!-- JS 렌더링 -->
-            </div>
-        </section>
-
-        <!-- Right Sidebar: Places Palette -->
-        <aside class="w-80 xl:w-[380px] shrink-0 bg-slate-50 flex flex-col overflow-hidden" id="right-sidebar">
-            <div class="p-4 bg-white border-b border-slate-200 shadow-sm shrink-0 z-10">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-bold text-slate-700 text-sm"><i class="fa-solid fa-map-location-dot mr-1 text-cyan-600"></i>방문할 장소 모음</h3>
-                    <button onclick="openAddModal()" class="text-[11px] bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold px-2 py-1 rounded border border-indigo-200 transition flex items-center gap-1">
-                        <i class="fa-solid fa-plus-circle"></i> 직접 추가
-                    </button>
-                </div>
-                
-                <div class="flex bg-slate-200/70 p-1 rounded-xl mb-3">
-                    <button onclick="switchRegion('south')" id="btn-south" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition bg-white text-cyan-700 shadow-sm">남부</button>
-                    <button onclick="switchRegion('central')" id="btn-central" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition text-slate-500 hover:text-slate-800">중부</button>
-                    <button onclick="switchRegion('north')" id="btn-north" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition text-slate-500 hover:text-slate-800">북부</button>
-                </div>
-
-                <div class="flex flex-wrap gap-1.5">
-                    <button onclick="switchCategory('관광지')" id="cat-관광지" class="px-3 py-1 rounded text-[11px] font-bold transition bg-cyan-600 text-white shadow-sm">관광지</button>
-                    <button onclick="switchCategory('식당')" id="cat-식당" class="px-3 py-1 rounded text-[11px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">식당</button>
-                    <button onclick="switchCategory('카페')" id="cat-카페" class="px-3 py-1 rounded text-[11px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">카페</button>
-                    <button onclick="switchCategory('쇼핑')" id="cat-쇼핑" class="px-3 py-1 rounded text-[11px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">쇼핑</button>
-                    <button onclick="switchCategory('액티비티')" id="cat-액티비티" class="px-3 py-1 rounded text-[11px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">액티비티</button>
-                    <button onclick="switchCategory('호텔')" id="cat-호텔" class="px-3 py-1 rounded text-[11px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">호텔</button>
+    <main class="max-w-4xl mx-auto px-0 py-4 sm:py-6">
+        <div class="bg-white sm:rounded-2xl pb-4 sm:pb-6 shadow-sm border-y sm:border border-slate-100 relative">
+            <!-- Day 탭 (Sticky 고정) -->
+            <div id="day-tabs-wrapper" class="sticky z-[35] bg-white/95 backdrop-blur px-4 sm:px-6 py-3 border-b border-slate-200 rounded-t-2xl transition-all">
+                <div class="bg-slate-50 rounded-xl border border-slate-200 p-2 shadow-inner w-full">
+                    <div id="day-tabs" class="flex flex-nowrap overflow-x-auto gap-1.5 w-full hide-scrollbar"></div>
                 </div>
             </div>
 
-            <div class="flex-1 overflow-y-auto p-4 hide-scrollbar bg-slate-50 relative">
-                <div id="places-container" class="flex flex-col gap-3">
-                    <!-- JS 렌더링 -->
-                </div>
-            </div>
-        </aside>
-
+            <!-- 메인 컨텐츠 영역 -->
+            <div id="day-content" class="space-y-4 pt-2 relative"></div>
+        </div>
     </main>
 
     <!-- 설정 모달 -->
@@ -127,15 +97,29 @@
                 <div class="w-full">
                     <h4 class="text-xs font-bold text-slate-500 mb-2"><i class="fa-regular fa-calendar mr-1"></i>여행 기간 설정</h4>
                     <div class="flex mb-3 w-full">
-                        <input type="text" id="settingsDateRange" class="w-full box-border bg-slate-50 border border-slate-300 text-slate-800 px-3 py-2 rounded-lg outline-none focus:border-cyan-400 cursor-pointer text-center font-medium" placeholder="출발일 - 귀국일 선택" readonly>
+                        <div class="flex-1 min-w-0 flex flex-col">
+                            <input type="text" id="settingsDateRange" class="w-full box-border bg-slate-50 border border-slate-300 text-slate-800 px-3 py-2 rounded-lg outline-none focus:border-cyan-400 cursor-pointer text-center font-medium" placeholder="출발일 - 귀국일 선택" readonly>
+                        </div>
                     </div>
                 </div>
                 
+                <div class="w-full">
+                    <h4 class="text-xs font-bold text-slate-500 mb-2"><i class="fa-solid fa-map-pin mr-1"></i>나만의 장소 직접 추가 및 관리</h4>
+                    <div class="flex gap-2 mb-2 w-full">
+                        <button onclick="closeSettingsModal(); openAddModal();" class="flex-1 min-w-0 bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-lg font-bold text-[14px] sm:text-sm transition shadow-sm flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-plus-circle"></i> 직접 추가
+                        </button>
+                        <button onclick="openSettingsTimelineAdd()" class="flex-1 min-w-0 bg-violet-500 hover:bg-violet-600 text-white py-2 rounded-lg font-bold text-[14px] sm:text-sm transition shadow-sm flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-list-check"></i> 추가된 장소
+                        </button>
+                    </div>
+                </div>
+
                 <hr class="border-slate-100">
 
                 <div class="w-full">
                     <div class="flex justify-between items-center mb-1.5">
-                        <h4 class="text-xs font-bold text-slate-500"><i class="fa-solid fa-users mr-1"></i>Day별 함께하는 친구들</h4>
+                        <h4 class="text-xs font-bold text-slate-500"><i class="fa-solid fa-users mr-1"></i>일정별 함께하는 친구들</h4>
                         <button onclick="toggleCompanions()" id="companionsToggleBtn" class="text-[11px] bg-slate-100 hover:bg-slate-200 text-slate-600 px-2 py-1 rounded font-bold transition border border-slate-200 shadow-sm">보이기</button>
                     </div>
                     <div id="day-companions-container" class="space-y-1.5 hidden w-full"></div>
@@ -148,15 +132,15 @@
                 <div class="w-full">
                     <h4 class="text-xs font-bold text-slate-500 mb-2"><i class="fa-solid fa-database mr-1"></i>데이터 및 공유 관리</h4>
                     <div class="flex gap-1.5 w-full">
-                        <button onclick="exportBackupData()" class="flex-1 min-w-0 bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-lg font-bold text-[12px] sm:text-xs transition shadow-sm flex flex-col items-center justify-center gap-1">
+                        <button onclick="exportBackupData()" class="flex-1 min-w-0 bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-lg font-bold text-[13px] sm:text-xs transition shadow-sm flex flex-col items-center justify-center gap-1">
                             <i class="fa-solid fa-download"></i> 백업
                         </button>
-                        <label class="flex-1 min-w-0 bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg font-bold text-[12px] sm:text-xs transition shadow-sm flex flex-col items-center justify-center gap-1 cursor-pointer m-0">
+                        <label class="flex-1 min-w-0 bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg font-bold text-[13px] sm:text-xs transition shadow-sm flex flex-col items-center justify-center gap-1 cursor-pointer m-0">
                             <i class="fa-solid fa-upload"></i> 복구
                             <input type="file" accept=".json" onchange="importBackupData(event)" class="hidden">
                         </label>
-                        <button onclick="shareFromSettings()" class="flex-1 min-w-0 bg-[#FEE500] hover:bg-[#FADA0A] text-[#191919] py-2 rounded-lg font-bold text-[12px] sm:text-xs transition shadow-sm flex flex-col items-center justify-center gap-1">
-                            <i class="fa-solid fa-image"></i> 전체 공유
+                        <button onclick="shareFromSettings()" class="flex-1 min-w-0 bg-[#FEE500] hover:bg-[#FADA0A] text-[#191919] py-2 rounded-lg font-bold text-[13px] sm:text-xs transition shadow-sm flex flex-col items-center justify-center gap-1">
+                            <i class="fa-solid fa-image"></i> 이미지공유
                         </button>
                     </div>
                 </div>
@@ -164,18 +148,56 @@
         </div>
     </div>
 
-    <!-- 전체위치 지도 모달 -->
-    <div id="mapModal" class="hidden fixed inset-0 z-[70] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col h-[85vh]">
+    <!-- 전체/카테고리 위치 지도 모달 -->
+    <div id="mapModal" class="hidden fixed inset-0 z-[100] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col h-[85vh]">
             <div class="bg-gradient-to-r from-emerald-600 to-teal-700 px-6 py-4 flex justify-between items-center text-white shrink-0">
-                <h3 id="map-modal-title" class="font-bold text-base"><i class="fa-solid fa-map-location-dot mr-2"></i>Day별 전체위치 지도</h3>
+                <h3 id="map-modal-title" class="font-bold text-base"><i class="fa-solid fa-map-location-dot mr-2"></i>지도보기</h3>
                 <button onclick="closeMapModal()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <div class="p-4 flex-1 bg-slate-100 flex flex-col">
                 <div id="dayMapContainer" class="w-full flex-1 rounded-xl shadow-inner border border-slate-300 z-10"></div>
+                <p class="text-xs text-slate-500 mt-2 text-center">※ 마커 번호는 순서를 나타내며, 클릭 시 상세 정보를 볼 수 있습니다.</p>
             </div>
             <div class="p-3 bg-white border-t border-slate-200 flex justify-end">
-                <button onclick="closeMapModal()" class="bg-slate-700 hover:bg-slate-800 text-white px-6 py-2 rounded-lg font-bold text-sm transition">닫기</button>
+                <button onclick="closeMapModal()" class="bg-slate-700 hover:bg-slate-800 text-white px-5 py-2 rounded-lg font-bold text-sm transition">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timeline Add Modal -->
+    <div id="timelineAddModal" class="hidden fixed inset-0 z-[50] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col h-[92vh]">
+            <div class="bg-gradient-to-r from-cyan-600 to-blue-700 px-6 py-4 flex justify-between items-center text-white shrink-0">
+                <h3 id="modal-title" class="font-bold text-lg"><i class="fa-solid fa-calendar-plus mr-2"></i>방문 순서에 장소 추가</h3>
+                <button onclick="closeTimelineAddModal()" class="text-white/80 hover:text-white transition"><i class="fa-solid fa-xmark text-2xl"></i></button>
+            </div>
+
+            <div class="overflow-y-auto bg-slate-50 flex-1 hide-scrollbar relative flex flex-col">
+                <!-- 지역 탭 & 카테고리 탭 -->
+                <div class="sticky top-0 z-20 bg-slate-50 px-5 sm:px-6 py-4 border-b border-slate-200 shadow-sm space-y-3">
+                    <div class="flex bg-slate-200/70 p-1 rounded-xl">
+                        <button onclick="switchRegion('south')" id="btn-south" class="flex-1 py-2 rounded-lg text-xs sm:text-sm font-bold transition bg-white text-cyan-700 shadow-sm">남부</button>
+                        <button onclick="switchRegion('central')" id="btn-central" class="flex-1 py-2 rounded-lg text-xs sm:text-sm font-bold transition text-slate-500 hover:text-slate-800">중부</button>
+                        <button onclick="switchRegion('north')" id="btn-north" class="flex-1 py-2 rounded-lg text-xs sm:text-sm font-bold transition text-slate-500 hover:text-slate-800">북부</button>
+                    </div>
+
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="switchCategory('관광지')" id="cat-관광지" class="px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition bg-cyan-600 text-white shadow-sm">관광지</button>
+                        <button onclick="switchCategory('식당')" id="cat-식당" class="px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">식당</button>
+                        <button onclick="switchCategory('카페')" id="cat-카페" class="px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">카페</button>
+                        <button onclick="switchCategory('쇼핑')" id="cat-쇼핑" class="px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">쇼핑</button>
+                        <button onclick="switchCategory('액티비티')" id="cat-액티비티" class="px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">액티비티</button>
+                        <button onclick="switchCategory('호텔')" id="cat-호텔" class="px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">호텔</button>
+                    </div>
+
+                    <button onclick="openCategoryMapModal()" id="categoryMapBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-lg text-[14px] sm:text-sm font-bold shadow-sm flex items-center justify-center gap-2 transition">
+                        <i class="fa-solid fa-map-location-dot"></i> 현재 분류 장소 지도보기
+                    </button>
+                </div>
+
+                <!-- 장소 카드 목록 -->
+                <div id="places-container" class="grid grid-cols-1 sm:grid-cols-2 gap-4 px-5 sm:px-6 py-5 relative z-10"></div>
             </div>
         </div>
     </div>
@@ -184,7 +206,7 @@
     <div id="addPlaceModal" class="hidden fixed inset-0 z-[90] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
             <div id="modal-header-bg" class="bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-4 flex justify-between items-center text-white">
-                <h3 id="custom-modal-title" class="font-bold text-base"><i class="fa-solid fa-plus-circle mr-2"></i>새로운 장소 / 숙소 직접 등록</h3>
+                <h3 id="custom-modal-title" class="font-bold text-base"><i class="fa-solid fa-plus-circle mr-2"></i>새로운 장소 / 호텔 직접 등록</h3>
                 <button onclick="closeAddModal()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
             <div class="p-5 space-y-4 h-[75vh] sm:h-auto overflow-y-auto">
@@ -193,15 +215,15 @@
                     <div class="flex justify-between items-center mb-1">
                         <label class="block text-xs font-bold text-slate-700">장소명 / 숙소명</label>
                         <button type="button" onclick="fetchCoordsByName()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2 py-0.5 rounded shadow-sm transition flex items-center gap-1">
-                            <i class="fa-solid fa-location-crosshairs"></i> 좌표 불러오기
+                            <i class="fa-solid fa-location-crosshairs"></i> 위도·경도 불러오기
                         </button>
                     </div>
-                    <input type="text" id="customPlaceName" placeholder="예: 블루씰 아이스크림" class="w-full box-border border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-indigo-500">
+                    <input type="text" id="customPlaceName" placeholder="예: 블루씰 아이스크림" class="w-full box-border border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 text-[16px] sm:text-sm">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">지역</label>
-                        <select id="customPlaceRegion" class="w-full box-border border border-slate-300 rounded-lg px-3 py-2 bg-white outline-none">
+                        <select id="customPlaceRegion" class="w-full box-border border border-slate-300 rounded-lg px-3 py-2 bg-white outline-none text-[16px] sm:text-sm">
                             <option value="south">남부</option>
                             <option value="central">중부</option>
                             <option value="north">북부</option>
@@ -209,10 +231,10 @@
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-slate-700 mb-1">분류</label>
-                        <select id="customPlaceGroup" class="w-full box-border border border-slate-300 rounded-lg px-3 py-2 bg-white outline-none">
+                        <select id="customPlaceGroup" class="w-full box-border border border-slate-300 rounded-lg px-3 py-2 bg-white outline-none text-[16px] sm:text-sm">
                             <option value="관광지">관광지</option>
                             <option value="식당">식당</option>
-                            <option value="카페">카페</option>
+                            <option value="카페" selected>카페</option>
                             <option value="쇼핑">쇼핑</option>
                             <option value="액티비티">액티비티</option>
                             <option value="호텔">호텔</option>
@@ -221,68 +243,371 @@
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">장소 설명 (선택)</label>
-                    <textarea id="customPlaceDesc" rows="2" placeholder="구글맵에서 확인한 설명이나 메모를 입력하세요." class="w-full box-border border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-indigo-500"></textarea>
+                    <textarea id="customPlaceDesc" rows="2" placeholder="구글맵에서 확인한 설명이나 메모를 입력하세요." class="w-full box-border border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 text-[16px] sm:text-sm"></textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-700 mb-1">
-                        <i class="fa-solid fa-map-pin mr-1 text-rose-500"></i>위도 / 경도 좌표 (선택)
+                        <i class="fa-solid fa-map-pin mr-1 text-rose-500"></i>위도 / 경도 좌표 (선택 입력)
                     </label>
                     <div class="grid grid-cols-2 gap-2">
-                        <input type="text" id="customLat" placeholder="위도" class="border box-border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-indigo-500" oninput="handleCustomCoordPaste(event)">
-                        <input type="text" id="customLng" placeholder="경도" class="border box-border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-indigo-500" oninput="handleCustomCoordPaste(event)">
+                        <input type="text" id="customLat" placeholder="위도 (예: 26.1738)" class="border box-border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 text-[16px] sm:text-sm" oninput="handleCustomCoordPaste(event)">
+                        <input type="text" id="customLng" placeholder="경도 (예: 127.6429)" class="border box-border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 text-[16px] sm:text-sm" oninput="handleCustomCoordPaste(event)">
                     </div>
                 </div>
                 
-                <div class="pt-1">
-                    <a href="https://www.google.com/maps/search/?api=1&query=오키나와" target="_blank" class="w-full bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 py-2 rounded-lg text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition">
-                        <i class="fa-solid fa-map-location-dot"></i> 구글 맵에서 위치 찾기 / 복사
-                    </a>
-                </div>
-
                 <div class="pt-3 flex gap-2">
-                    <button onclick="registerCustomPlace()" id="customAddBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg font-bold text-sm transition shadow-sm">
+                    <button onclick="registerCustomPlace()" id="customAddBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg font-bold text-sm sm:text-base transition shadow-sm">
                         등록하기
                     </button>
-                    <button onclick="closeAddModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2.5 rounded-lg font-bold text-sm transition">닫기</button>
+                    <button onclick="closeAddModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2.5 rounded-lg font-bold text-sm sm:text-base transition">닫기</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        const defaultPlacesData = {
-            south: [
-                { id: 's_att1', group: '관광지', name: '슈리성', category: '역사유적', desc: '오키나와의 역사를 담은 류큐 왕국의 궁전 유적입니다.', lat: 26.2170, lng: 127.7195 },
-                { id: 's_att2', group: '관광지', name: '국제거리', category: '번화가', desc: '나하 최대의 번화가로 쇼핑과 식사의 메카입니다.', lat: 26.2154, lng: 127.6846 },
-                { id: 's_eat1', group: '식당', name: '잭스 스테이크 하우스', category: '식당', desc: '1953년 개업하여 오랫동안 사랑받는 오키나와 정통 스테이크 하우스.', lat: 26.2144, lng: 127.6749 },
-                { id: 's_caf1', group: '카페', name: '하마노차야', category: '카페', desc: '창밖으로 푸른 바다를 마주하고 앉아 커피를 즐기는 남부 최고의 오션뷰 카페.', lat: 26.1368, lng: 127.7816 },
-                { id: 's_shp1', group: '쇼핑', name: '국제거리 (쇼핑)', category: '쇼핑', desc: '돈키호테, 기념품 샵, 특산물 상점이 끝없이 이어지는 거리.', lat: 26.2154, lng: 127.6846 },
-                { id: 's_shp2', group: '쇼핑', name: '아시비나 아울렛', category: '쇼핑', desc: '다양한 글로벌 브랜드가 모여 있는 오키나와 유일의 프리미엄 아울렛 몰.', lat: 26.1583, lng: 127.6565 },
-                { id: 's_act1', group: '액티비티', name: '동굴 탐험 (오키나와 월드)', category: '액티비티', desc: '신비로운 대형 종유석 동굴(교쿠센도) 탐험과 류큐 전통 문화를 체험할 수 있습니다.', lat: 26.1396, lng: 127.7503 },
-                { id: 's_act2', group: '액티비티', name: '류진 온천 (세나가지마)', category: '액티비티', desc: '탁 트인 바다와 일몰을 바라보며 즐기는 힐링 노천 온천.', lat: 26.1740, lng: 127.6433 }
-            ],
-            central: [
-                { id: 'c_att1', group: '관광지', name: '아메리칸 빌리지', category: '테마타운', desc: '이국적인 미국 서해안 풍경과 화려한 야경, 포토스팟이 가득한 복합 문화 공간.', lat: 26.3164, lng: 127.7578 },
-                { id: 'c_att2', group: '관광지', name: '만자모', category: '자연경관', desc: '코끼리 코 모양의 독특한 바위와 끝없이 펼쳐진 푸른 바다가 어우러진 절경.', lat: 26.5049, lng: 127.8502 },
-                { id: 'c_eat1', group: '식당', name: '킹 타코스', category: '식당', desc: '풍성한 양을 자랑하는 오키나와 소울푸드 \'타코라이스\'의 원조 맛집.', lat: 26.4526, lng: 127.9250 },
-                { id: 'c_eat2', group: '식당', name: '스테이크하우스 88', category: '식당', desc: '오키나와 전역에서 사랑받는 가성비 좋은 스테이크 전문점.', lat: 26.3150, lng: 127.7565 },
-                { id: 'c_caf1', group: '카페', name: 'BANTA CAFE (호시노 리조트)', category: '카페', desc: '해안선 지형을 살려 만든 압도적인 스케일의 절벽 위 오션뷰 카페.', lat: 26.4172, lng: 127.7144 },
-                { id: 'c_shp1', group: '쇼핑', name: '아메리칸 빌리지 (쇼핑)', category: '쇼핑', desc: '개성 넘치는 의류, 빈티지 샵, 수비니어 상점들이 모여있는 구역.', lat: 26.3164, lng: 127.7578 },
-                { id: 'c_shp2', group: '쇼핑', name: '이온몰 오키나와 라이컴', category: '쇼핑', desc: '수많은 브랜드와 거대 수조가 있는 오키나와 최대 규모의 메가 쇼핑몰.', lat: 26.3142, lng: 127.7958 },
-                { id: 'c_act1', group: '액티비티', name: '푸른 동굴 스노클링', category: '액티비티', desc: '마에다 곶에 위치한 신비로운 푸른빛 동굴에서의 다이빙 및 스노클링 체험.', lat: 26.4447, lng: 127.7719 }
-            ],
-            north: [
-                { id: 'n_att1', group: '관광지', name: '츄라우미 수족관', category: '수족관', desc: '거대한 수조 속 고래상어와 만타가 압도적인 오키나와 필수 방문지.', lat: 26.6943, lng: 127.8780 },
-                { id: 'n_att2', group: '관광지', name: '코우리섬 & 코우리 대교', category: '자연경관', desc: '에메랄드빛 투명한 바다 위를 시원하게 가로지르는 대교와 아름다운 섬.', lat: 26.6967, lng: 128.0200 },
-                { id: 'n_eat1', group: '식당', name: '레스토랑 플리퍼', category: '식당', desc: '나고 지역에서 현지인과 관광객 모두에게 오랫동안 사랑받는 로컬 수제 스테이크하우스.', lat: 26.6111, lng: 127.9622 },
-                { id: 'n_caf1', group: '카페', name: '코우리섬 카페 (오션타워)', category: '카페', desc: '코우리 대교와 투명한 바다가 한눈에 내려다보이는 완벽한 뷰 맛집.', lat: 26.7032, lng: 128.0238 },
-                { id: 'n_shp1', group: '쇼핑', name: '나고 쇼핑몰 (이온 등)', category: '쇼핑', desc: '식료품부터 필수품까지 북부 여행의 거점이 되는 핵심 쇼핑 및 마트 시설.', lat: 26.5866, lng: 127.9866 },
-                { id: 'n_act1', group: '액티비티', name: '카약 (맹그로브 탐험)', category: '액티비티', desc: '얀바루 대자연 속 맹그로브 숲에서 즐기는 힐링 카약 탐험.', lat: 26.6045, lng: 128.1477 },
-                { id: 'n_act2', group: '액티비티', name: '해양 스포츠', category: '액티비티', desc: '북부 투명한 바다와 민나섬 등에서 즐기는 패러세일링, 다이빙 등 다양한 액티비티.', lat: 26.6586, lng: 127.8887 }
-            ]
-        };
+    <!-- 경비 정산 및 송금 계산기 모달 -->
+    <div id="expenseModal" class="hidden fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+        <div class="bg-slate-950 text-slate-100 rounded-2xl w-full max-w-md shadow-2xl border border-slate-800 flex flex-col max-h-[92vh] overflow-hidden my-auto">
+            
+            <!-- 모달 상단 헤더 -->
+            <div class="sticky top-0 z-25 bg-slate-950/95 backdrop-blur-md px-4 py-3.5 border-b border-slate-900 flex justify-between items-center shrink-0">
+                <div class="space-y-0.5">
+                    <h2 id="expenseHeaderTitle" class="text-lg font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
+                        여행 정산 & 송금 계산기
+                    </h2>
+                    <p class="text-[11px] text-slate-400">개인별 · 부부별 맞춤형 지출 정산 시스템</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="closeExpenseModal()" class="text-slate-400 hover:text-white p-1.5 transition">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+            </div>
 
+            <!-- 모달 내부 스크롤 콘텐츠 영역 -->
+            <div class="p-4 space-y-5 overflow-y-auto flex-1 hide-scrollbar">
+                
+                <!-- Participants Management & Trip Title -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+                    <div>
+                        <label class="text-xs text-slate-400 mb-1 block">여행 장소 / 제목</label>
+                        <div class="flex gap-2 items-center">
+                            <input type="text" id="tripTitleInput" placeholder="예: 오키나와 우정 여행" oninput="updateTripTitle()"
+                                class="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500">
+                            <button onclick="saveExpenseAppData()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-3 py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-md shadow-indigo-600/20 shrink-0 h-[38px]">
+                                <span>💾</span> 저장
+                            </button>
+                            <button onclick="shareAsImage()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-3 py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-md shadow-indigo-600/20 shrink-0 h-[38px]">
+                                <span>💬</span> 공유
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center border-t border-slate-800/80 pt-3">
+                        <h3 class="text-sm font-semibold text-slate-300">참여자 관리</h3>
+                        <span id="participantCount" class="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full font-medium">4명</span>
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="newParticipantName" placeholder="이름 입력 (예: 찬팅)" 
+                            class="w-[62%] bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-slate-100 focus:outline-none focus:border-indigo-500 text-sm">
+                        <button onclick="addParticipant()" class="w-[38%] bg-indigo-600 hover:bg-indigo-500 text-white py-1.5 px-3 rounded-xl text-xs font-semibold transition shadow-md shadow-indigo-600/20">
+                            참여자 추가
+                        </button>
+                    </div>
+                    <div id="participantTags" class="flex flex-wrap gap-1.5 pt-1">
+                        <!-- Dynamically populated -->
+                    </div>
+
+                    <!-- 정산 방식 선택 (개인별 / 부부별) -->
+                    <div class="border-t border-slate-800/80 pt-3 space-y-2.5">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-semibold text-slate-300">정산 방식 선택</span>
+                            <div class="inline-flex bg-slate-950 p-1 rounded-xl border border-slate-800">
+                                <button type="button" id="modeIndividualBtn" onclick="setSettlementMode('individual')"
+                                    class="px-3 py-1 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow-sm">
+                                    👤 개인별 정산
+                                </button>
+                                <button type="button" id="modeCoupleBtn" onclick="setSettlementMode('couple')"
+                                    class="px-3 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-slate-200">
+                                    💑 부부별 정산
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 부부 그룹 설정 영역 (부부별 선택 시 노출) -->
+                        <div id="coupleSetupSection" class="hidden bg-slate-950 border border-indigo-500/30 rounded-xl p-3 space-y-2.5">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-indigo-300">💑 부부 묶기 및 대표자 지정</span>
+                                <span class="text-[10px] text-slate-400">👑 클릭 시 대표 변경</span>
+                            </div>
+
+                            <!-- 부부 묶기 선택 컨트롤 -->
+                            <div id="couplePairCreator" class="space-y-1.5">
+                                <div class="grid grid-cols-2 gap-1.5">
+                                    <select id="coupleMember1" class="w-full min-w-0 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-slate-200 outline-none focus:border-indigo-500"></select>
+                                    <select id="coupleMember2" class="w-full min-w-0 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-slate-200 outline-none focus:border-indigo-500"></select>
+                                </div>
+                                <button type="button" onclick="addCouplePair()" class="w-full bg-indigo-600/90 hover:bg-indigo-500 text-white py-1.5 rounded-lg text-xs font-semibold transition shadow-sm">
+                                    + 선택한 두 명을 부부로 묶기
+                                </button>
+                            </div>
+
+                            <!-- 등록된 부부 및 미지정 인원 표시 -->
+                            <div id="coupleListContainer" class="space-y-1.5 pt-1"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Expense Form -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+                    <h3 class="text-sm font-semibold text-slate-300">지출 입력</h3>
+                    <div class="space-y-2.5">
+                        <div>
+                            <label class="text-xs text-slate-400 mb-1 block">지출 항목명</label>
+                            <input type="text" id="expenseTitle" placeholder="예: 숙박, 식사, 택시" 
+                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-xs text-slate-400 mb-1 block">금액 (원)</label>
+                                <input type="number" id="expenseAmount" placeholder="0" 
+                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-400 mb-1 block">결제자</label>
+                                <select id="expensePayer" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500">
+                                    <!-- Dynamically populated -->
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs text-slate-400 block">지출 참여 인원 (체크된 사람 수만큼 1/N 분담)</label>
+                            </div>
+                            <div id="expenseParticipants" class="flex flex-wrap gap-2 pt-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+                                <!-- Dynamically populated checkboxes -->
+                            </div>
+                        </div>
+                        <button onclick="addExpense()" class="w-full bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-lg shadow-indigo-500/20">
+                            지출 내역 추가
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Expense List (메인 화면용) -->
+                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+                    <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleExpenseList()">
+                        <h3 class="text-sm font-semibold text-slate-300 flex items-center gap-1.5">
+                            지출 내역 목록 <span class="text-[10px] text-indigo-400 font-normal">(클릭하여 펼치기/접기)</span>
+                        </h3>
+                        <span id="totalExpenseSummary" class="text-xs text-indigo-400 font-medium">총 지출: 0원</span>
+                    </div>
+                    <div id="expenseListContainer" class="space-y-2 hidden">
+                        <p class="text-xs text-slate-500 text-center py-4">등록된 지출 내역이 없습니다.</p>
+                    </div>
+                </div>
+
+                <!-- Calculate Button -->
+                <button onclick="calculateSettlement()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-2xl text-sm transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
+                    <span>🧮</span> 정산하기 (자동 계산)
+                </button>
+
+                <!-- Settlement Results -->
+                <div id="settlementResultSection" class="space-y-4 hidden">
+                    <div id="captureArea" class="bg-slate-950 p-2 space-y-4 rounded-2xl">
+                        
+                        <div class="border-b border-slate-800 pb-3 flex justify-between items-center">
+                            <div>
+                                <h3 id="summaryMainTitle" class="text-base font-bold text-slate-100">여행 정산 및 송금 요약</h3>
+                                <p id="summarySubTitle" class="text-[11px] text-slate-400">지출 내역 및 개인별 정산 결과</p>
+                            </div>
+                            <span id="summaryModeBadge" class="text-xs bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-full font-medium">개인별 정산</span>
+                        </div>
+
+                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+                            <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleSummaryExpenseList()">
+                                <h4 class="text-sm font-semibold text-slate-300 flex items-center gap-1.5">
+                                    전체 지출 내역 <span class="text-[10px] text-indigo-400 font-normal">(클릭하여 펼치기/접기)</span>
+                                </h4>
+                                <span id="summaryTotalExpense" class="text-xs text-indigo-400 font-medium">총 지출: 0원</span>
+                            </div>
+                            <div id="summaryExpenseListContainer" class="space-y-2 hidden"></div>
+                        </div>
+
+                        <div class="space-y-3">
+                            <h4 id="summaryCardsHeading" class="text-sm font-bold text-slate-200 pt-1">개인별 정산 카드</h4>
+                            <div id="personalSummaries" class="space-y-3"></div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+// 전체 기본 장소 데이터 (오키나와 남부·중부·북부 각 50개 장소 반영)
+const defaultPlacesData = {
+    south: [
+        { id: 's_att1', group: '관광지', name: '슈리성', category: '역사유적', desc: '류큐왕국의 왕궁이자 역사 유적', lat: 26.2171, lng: 127.7195 },
+        { id: 's_att2', group: '관광지', name: '국제거리', category: '번화가', desc: '오키나와 대표 번화가와 관광 거리', lat: 26.2166, lng: 127.6846 },
+        { id: 's_att3', group: '관광지', name: '세이화우타키', category: '관광지', desc: '류큐왕국의 신성한 성지', lat: 26.1740, lng: 127.8265 },
+        { id: 's_att4', group: '관광지', name: '오키나와 월드', category: '관광지', desc: '전통문화와 동굴을 체험하는 테마파크', lat: 26.1360, lng: 127.7505 },
+        { id: 's_att5', group: '관광지', name: '교쿠센도 동굴', category: '관광지', desc: '대규모 석회암 종유동굴', lat: 26.1365, lng: 127.7510 },
+        { id: 's_att6', group: '관광지', name: '평화기념공원', category: '관광지', desc: '오키나와 전쟁을 기억하는 추모공원', lat: 26.0958, lng: 127.7165 },
+        { id: 's_att7', group: '관광지', name: '히메유리 평화기념자료관', category: '관광지', desc: '전쟁 당시 여학생들의 희생을 기리는 박물관', lat: 26.0970, lng: 127.6880 },
+        { id: 's_att8', group: '관광지', name: '세나가지마 우미카지테라스', category: '관광지', desc: '바다 전망의 흰색 건물과 상점 거리', lat: 26.1760, lng: 127.6530 },
+        { id: 's_att9', group: '관광지', name: '치넨미사키 공원', category: '관광지', desc: '태평양을 바라보는 전망 명소', lat: 26.1585, lng: 127.8290 },
+        { id: 's_att10', group: '관광지', name: '오지마섬', category: '관광지', desc: '해산물과 튀김으로 유명한 작은 어촌섬', lat: 26.1385, lng: 127.7735 },
+        { id: 's_eat1', group: '식당', name: '잭스 스테이크 하우스', category: '식당', desc: '나하의 유명한 미국식 스테이크 전문점', lat: 26.2130, lng: 127.6785 },
+        { id: 's_eat2', group: '식당', name: '얏빠리 스테이크', category: '식당', desc: '합리적인 가격의 일본식 스테이크', lat: 26.2155, lng: 127.6870 },
+        { id: 's_eat3', group: '식당', name: '미카도', category: '식당', desc: '현지인에게 인기 있는 일본 가정식 식당', lat: 26.2150, lng: 127.6770 },
+        { id: 's_eat4', group: '식당', name: '만부', category: '식당', desc: '오키나와 흑돼지 아구 요리 전문점', lat: 26.2160, lng: 127.6850 },
+        { id: 's_eat5', group: '식당', name: '키시모토 식당', category: '식당', desc: '전통 오키나와 소바 전문점', lat: 26.1370, lng: 127.7510 },
+        { id: 's_eat6', group: '식당', name: '하마노차야', category: '식당', desc: '바다 전망을 즐기는 해변 레스토랑', lat: 26.1310, lng: 127.7750 },
+        { id: 's_eat7', group: '식당', name: '마키시 공설시장', category: '식당', desc: '신선한 해산물과 오키나와 음식', lat: 26.2165, lng: 127.6900 },
+        { id: 's_eat8', group: '식당', name: '포크 타마고 오니기리', category: '식당', desc: '스팸과 계란을 넣은 오키나와 주먹밥', lat: 26.2135, lng: 127.6800 },
+        { id: 's_eat9', group: '식당', name: '오지마 튀김 전문점', category: '식당', desc: '해산물과 야채 튀김 전문점', lat: 26.1385, lng: 127.7735 },
+        { id: 's_eat10', group: '식당', name: '류큐 요리 우라시마', category: '식당', desc: '전통 류큐 요리를 맛볼 수 있는 식당', lat: 26.2170, lng: 127.6810 },
+        { id: 's_caf1', group: '카페', name: '하마노차야 (Hamabe no Chaya)', category: '카페', desc: '바다 바로 앞에서 커피를 즐기는 카페', lat: 26.1310, lng: 127.7750 },
+        { id: 's_caf2', group: '카페', name: '카페 쿠루쿠마', category: '카페', desc: '태국 음식과 아름다운 바다 전망', lat: 26.1530, lng: 127.8230 },
+        { id: 's_caf3', group: '카페', name: '우미카지테라스 카페', category: '카페', desc: '바다와 비행기 전망을 즐기는 카페', lat: 26.1760, lng: 127.6530 },
+        { id: 's_caf4', group: '카페', name: '가란가란', category: '카페', desc: '전통 오키나와 분위기의 휴식 공간', lat: 26.1430, lng: 127.7500 },
+        { id: 's_caf5', group: '카페', name: '플랜트홀릭', category: '카페', desc: '식물과 자연 분위기의 감성 카페', lat: 26.2170, lng: 127.6850 },
+        { id: 's_caf6', group: '카페', name: '로칸 커피 크리에이터스', category: '카페', desc: '스페셜티 커피 전문점', lat: 26.2100, lng: 127.6870 },
+        { id: 's_caf7', group: '카페', name: '후스 커피', category: '카페', desc: '감각적인 인테리어와 브런치 카페', lat: 26.2160, lng: 127.6900 },
+        { id: 's_caf8', group: '카페', name: '씨사이드 가든 나미노우에', category: '카페', desc: '바다 전망과 하와이풍 메뉴', lat: 26.2200, lng: 127.6680 },
+        { id: 's_caf9', group: '카페', name: '야치문 카페 차타로', category: '카페', desc: '전통 도자기 마을 분위기의 카페', lat: 26.2070, lng: 127.7180 },
+        { id: 's_caf10', group: '카페', name: '류보 백화점 카페 거리', category: '카페', desc: '쇼핑과 함께 즐기는 도심 카페 공간', lat: 26.2140, lng: 127.6790 },
+        { id: 's_shp1', group: '쇼핑', name: '국제거리', category: '쇼핑', desc: '오키나와 기념품과 특산품 쇼핑 거리', lat: 26.2166, lng: 127.6846 },
+        { id: 's_shp2', group: '쇼핑', name: '마키시 공설시장', category: '쇼핑', desc: '해산물, 식품, 지역 특산품 시장', lat: 26.2165, lng: 127.6900 },
+        { id: 's_shp3', group: '쇼핑', name: '돈키호테 국제거리점', category: '쇼핑', desc: '화장품, 과자, 생활용품 쇼핑', lat: 26.2150, lng: 127.6890 },
+        { id: 's_shp4', group: '쇼핑', name: 'T 갤러리아 오키나와', category: '쇼핑', desc: '명품 및 면세 쇼핑 공간', lat: 26.2220, lng: 127.6980 },
+        { id: 's_shp5', group: '쇼핑', name: '나하 메인 플레이스', category: '쇼핑', desc: '대형 쇼핑몰과 식당가', lat: 26.2240, lng: 127.6950 },
+        { id: 's_shp6', group: '쇼핑', name: '아시비나 아울렛', category: '쇼핑', desc: '일본 및 해외 브랜드 아울렛', lat: 26.1600, lng: 127.6540 },
+        { id: 's_shp7', group: '쇼핑', name: '우미카지테라스 (쇼핑)', category: '쇼핑', desc: '기념품, 디저트, 패션 소품', lat: 26.1760, lng: 127.6530 },
+        { id: 's_shp8', group: '쇼핑', name: '츠보야 야치문 거리', category: '쇼핑', desc: '오키나와 전통 도자기 쇼핑 거리', lat: 26.2140, lng: 127.6890 },
+        { id: 's_shp9', group: '쇼핑', name: '산에이 나하 메인 플레이스', category: '쇼핑', desc: '패션, 식품, 생활용품 쇼핑몰', lat: 26.2240, lng: 127.6950 },
+        { id: 's_shp10', group: '쇼핑', name: '파르코시티', category: '쇼핑', desc: '다양한 브랜드가 입점한 복합 쇼핑몰', lat: 26.2580, lng: 127.6990 },
+        { id: 's_act1', group: '액티비티', name: '세나가지마 온천', category: '액티비티', desc: '바다를 바라보며 즐기는 온천', lat: 26.1760, lng: 127.6530 },
+        { id: 's_act2', group: '액티비티', name: '오키나와 월드 전통공연', category: '액티비티', desc: '에이사 전통춤과 류큐 문화 공연', lat: 26.1360, lng: 127.7505 },
+        { id: 's_act3', group: '액티비티', name: '교쿠센도 동굴 탐험', category: '액티비티', desc: '석회암 동굴 내부 탐방', lat: 26.1365, lng: 127.7510 },
+        { id: 's_act4', group: '액티비티', name: '하마히가섬 드라이브', category: '액티비티', desc: '전통마을과 해안도로 드라이브', lat: 26.3400, lng: 127.9600 },
+        { id: 's_act5', group: '액티비티', name: '치넨미사키 일출 감상', category: '액티비티', desc: '태평양의 아름다운 일출 감상', lat: 26.1585, lng: 127.8290 },
+        { id: 's_act6', group: '액티비티', name: '오지마 해산물 체험', category: '액티비티', desc: '현지 해산물과 튀김 먹거리 체험', lat: 26.1385, lng: 127.7735 },
+        { id: 's_act7', group: '액티비티', name: '국제거리 먹거리 투어', category: '액티비티', desc: '현지 음식과 길거리 음식 탐방', lat: 26.2166, lng: 127.6846 },
+        { id: 's_act8', group: '액티비티', name: '나하 크루즈 투어', category: '액티비티', desc: '나하항 주변 바다 관광', lat: 26.2200, lng: 127.6700 },
+        { id: 's_act9', group: '액티비티', name: '세이화우타키 문화 탐방', category: '액티비티', desc: '류큐왕국의 종교와 역사 탐방', lat: 26.1740, lng: 127.8265 },
+        { id: 's_act10', group: '액티비티', name: '이토만 해안 드라이브', category: '액티비티', desc: '남부 해안도로와 등대 풍경 감상', lat: 26.0700, lng: 127.6900 }
+    ],
+    central: [
+        { id: 'c_att1', group: '관광지', name: '아메리칸 빌리지', category: '관광지', desc: '미국 서부 분위기의 쇼핑 및 관광 명소', lat: 26.3170, lng: 127.7570 },
+        { id: 'c_att2', group: '관광지', name: '만자모', category: '관광지', desc: '코끼리 코 모양의 절벽과 바다 전망', lat: 26.5040, lng: 127.8520 },
+        { id: 'c_att3', group: '관광지', name: '푸른 동굴', category: '관광지', desc: '푸른빛 바다로 유명한 해양 명소', lat: 26.4460, lng: 127.7790 },
+        { id: 'c_att4', group: '관광지', name: '잔파곶', category: '관광지', desc: '하얀 등대와 해안 절벽', lat: 26.4410, lng: 127.7130 },
+        { id: 'c_att5', group: '관광지', name: '가쓰렌성터', category: '관광지', desc: '류큐왕국 시대의 세계유산 성터', lat: 26.3300, lng: 127.8790 },
+        { id: 'c_att6', group: '관광지', name: '나카구스쿠성터', category: '관광지', desc: '웅장한 석벽이 남아 있는 세계유산', lat: 26.3000, lng: 127.7910 },
+        { id: 'c_att7', group: '관광지', name: '자키미성터', category: '관광지', desc: '류큐왕국의 역사적 성터', lat: 26.3970, lng: 127.7430 },
+        { id: 'c_att8', group: '관광지', name: '류큐무라', category: '관광지', desc: '전통 가옥과 류큐 문화 체험 공간', lat: 26.4350, lng: 127.8060 },
+        { id: 'c_att9', group: '관광지', name: '도구치 해변', category: '관광지', desc: '잔잔한 바다와 해변 산책 명소', lat: 26.3400, lng: 127.7500 },
+        { id: 'c_att10', group: '관광지', name: '도카시키 해변 전망대', category: '관광지', desc: '해안 풍경을 감상하는 전망 장소', lat: 26.3300, lng: 127.7500 },
+        { id: 'c_eat1', group: '식당', name: '스테이크하우스 88 차탄점', category: '식당', desc: '오키나와 대표 스테이크 전문점', lat: 26.3150, lng: 127.7560 },
+        { id: 'c_eat2', group: '식당', name: '블루씰 아이스크림', category: '식당', desc: '오키나와 대표 아이스크림 브랜드', lat: 26.3170, lng: 127.7570 },
+        { id: 'c_eat3', group: '식당', name: '차탄 하버 브루어리', category: '식당', desc: '항구 전망과 다양한 요리', lat: 26.3150, lng: 127.7460 },
+        { id: 'c_eat4', group: '식당', name: '지바고 커피 주변 레스토랑', category: '식당', desc: '미국식 브런치와 해변 식사 공간', lat: 26.3180, lng: 127.7570 },
+        { id: 'c_eat5', group: '식당', name: '하마노야', category: '식당', desc: '오키나와 전통 음식과 소바', lat: 26.4450, lng: 127.8060 },
+        { id: 'c_eat6', group: '식당', name: '피자 인더스트리', category: '식당', desc: '피자와 전망을 함께 즐기는 식당', lat: 26.3950, lng: 127.7460 },
+        { id: 'c_eat7', group: '식당', name: '잔파 로얄 주변 레스토랑', category: '식당', desc: '리조트 주변 해산물과 다양한 요리', lat: 26.4400, lng: 127.7100 },
+        { id: 'c_eat8', group: '식당', name: '고자 시내 이자카야', category: '식당', desc: '오키나와 전통 안주와 현지 분위기', lat: 26.3350, lng: 127.8010 },
+        { id: 'c_eat9', group: '식당', name: '킹 타코스', category: '식당', desc: '오키나와 대표 타코라이스 전문점', lat: 26.3540, lng: 127.8000 },
+        { id: 'c_eat10', group: '식당', name: '차탄 데포아일랜드 레스토랑', category: '식당', desc: '해산물, 스테이크, 양식 레스토랑', lat: 26.3160, lng: 127.7580 },
+        { id: 'c_caf1', group: '카페', name: 'BANTA CAFE', category: '카페', desc: '절벽 위에서 바다를 바라보는 대형 카페', lat: 26.4070, lng: 127.7240 },
+        { id: 'c_caf2', group: '카페', name: '지바고 커피 웍스', category: '카페', desc: '미국 서부 스타일의 스페셜티 커피', lat: 26.3170, lng: 127.7570 },
+        { id: 'c_caf3', group: '카페', name: '굿데이 커피', category: '카페', desc: '브런치와 커피가 유명한 카페', lat: 26.3260, lng: 127.7520 },
+        { id: 'c_caf4', group: '카페', name: '씨사이드 카페 한잔', category: '카페', desc: '바다 전망을 즐기는 카페', lat: 26.3200, lng: 127.7600 },
+        { id: 'c_caf5', group: '카페', name: '하와이안 팬케이크 하우스', category: '카페', desc: '하와이식 팬케이크와 디저트', lat: 26.3170, lng: 127.7570 },
+        { id: 'c_caf6', group: '카페', name: '더 칼리포니아', category: '카페', desc: '미국 서부 스타일의 카페 공간', lat: 26.3150, lng: 127.7560 },
+        { id: 'c_caf7', group: '카페', name: '카페 츄라미', category: '카페', desc: '오키나와 디저트와 음료', lat: 26.4350, lng: 127.8060 },
+        { id: 'c_caf8', group: '카페', name: '온나 블루 카페', category: '카페', desc: '리조트 분위기의 바다 전망 카페', lat: 26.4400, lng: 127.8100 },
+        { id: 'c_caf9', group: '카페', name: '스타벅스 차탄점', category: '카페', desc: '해안 드라이브 중 들르기 좋은 카페', lat: 26.3160, lng: 127.7560 },
+        { id: 'c_caf10', group: '카페', name: '카페 난조', category: '카페', desc: '자연과 해안 풍경을 즐기는 휴식 공간', lat: 26.3500, lng: 127.8000 },
+        { id: 'c_shp1', group: '쇼핑', name: '데포아일랜드', category: '쇼핑', desc: '아메리칸 빌리지의 대표 쇼핑 공간', lat: 26.3160, lng: 127.7580 },
+        { id: 'c_shp2', group: '쇼핑', name: '이온몰 오키나와 라이컴', category: '쇼핑', desc: '대형 복합 쇼핑몰', lat: 26.3150, lng: 127.7970 },
+        { id: 'c_shp3', group: '쇼핑', name: '파르코시티', category: '쇼핑', desc: '대형 쇼핑몰과 다양한 브랜드', lat: 26.2580, lng: 127.6990 },
+        { id: 'c_shp4', group: '쇼핑', name: '아메리칸 빌리지 쇼핑거리', category: '쇼핑', desc: '패션, 기념품, 잡화 쇼핑', lat: 26.3170, lng: 127.7570 },
+        { id: 'c_shp5', group: '쇼핑', name: '아메리칸 디포', category: '쇼핑', desc: '빈티지 의류와 미국식 소품', lat: 26.3160, lng: 127.7570 },
+        { id: 'c_shp6', group: '쇼핑', name: '플라자 하우스', category: '쇼핑', desc: '오키나와의 역사 깊은 쇼핑센터', lat: 26.3180, lng: 127.8000 },
+        { id: 'c_shp7', group: '쇼핑', name: '이온몰 구스쿠', category: '쇼핑', desc: '현지 생활용품과 식품 쇼핑', lat: 26.3600, lng: 127.8010 },
+        { id: 'c_shp8', group: '쇼핑', name: '우루마 이온몰', category: '쇼핑', desc: '쇼핑과 식사를 함께 즐기는 공간', lat: 26.3650, lng: 127.8270 },
+        { id: 'c_shp9', group: '쇼핑', name: '요미탄 도자기 마을', category: '쇼핑', desc: '오키나와 전통 도자기 구매', lat: 26.3960, lng: 127.7450 },
+        { id: 'c_shp10', group: '쇼핑', name: '미하마 쇼핑 스트리트', category: '쇼핑', desc: '패션과 액세서리, 기념품 쇼핑', lat: 26.3170, lng: 127.7580 },
+        { id: 'c_act1', group: '액티비티', name: '푸른 동굴 스노클링', category: '액티비티', desc: '푸른빛 바닷속에서 해양생물 감상', lat: 26.4460, lng: 127.7790 },
+        { id: 'c_act2', group: '액티비티', name: '푸른 동굴 스쿠버다이빙', category: '액티비티', desc: '전문 강사와 함께하는 다이빙', lat: 26.4460, lng: 127.7790 },
+        { id: 'c_act3', group: '액티비티', name: '마에다곶 해양 액티비티', category: '액티비티', desc: '다이빙과 스노클링 명소', lat: 26.4460, lng: 127.7790 },
+        { id: 'c_act4', group: '액티비티', name: '만자모 일몰 감상', category: '액티비티', desc: '서쪽 해안의 아름다운 일몰 감상', lat: 26.5040, lng: 127.8520 },
+        { id: 'c_act5', group: '액티비티', name: '아메리칸 빌리지 야경', category: '액티비티', desc: '야경과 쇼핑, 거리 사진 촬영', lat: 26.3170, lng: 127.7570 },
+        { id: 'c_act6', group: '액티비티', name: '잔파곶 해안 산책', category: '액티비티', desc: '절벽과 바다를 따라 걷는 산책', lat: 26.4410, lng: 127.7130 },
+        { id: 'c_act7', group: '액티비티', name: '카약 체험', category: '액티비티', desc: '해안과 바다에서 카약 즐기기', lat: 26.4500, lng: 127.8100 },
+        { id: 'c_act8', group: '액티비티', name: '류큐무라 전통문화 체험', category: '액티비티', desc: '전통 의상과 공예, 공연 체험', lat: 26.4350, lng: 127.8060 },
+        { id: 'c_act9', group: '액티비티', name: '가쓰렌성터 역사 탐방', category: '액티비티', desc: '류큐왕국의 역사와 전망 감상', lat: 26.3300, lng: 127.8790 },
+        { id: 'c_act10', group: '액티비티', name: '우루마 해중도로 드라이브', category: '액티비티', desc: '바다 위를 달리는 특별한 드라이브', lat: 26.3300, lng: 127.9300 }
+    ],
+    north: [
+        { id: 'n_att1', group: '관광지', name: '츄라우미 수족관', category: '관광지', desc: '고래상어와 대형 수조로 유명한 수족관', lat: 26.6940, lng: 127.8770 },
+        { id: 'n_att2', group: '관광지', name: '코우리섬', category: '관광지', desc: '에메랄드빛 바다와 아름다운 섬', lat: 26.6970, lng: 128.0170 },
+        { id: 'n_att3', group: '관광지', name: '코우리 대교', category: '관광지', desc: '바다 위를 달리는 아름다운 드라이브 코스', lat: 26.6870, lng: 128.0180 },
+        { id: 'n_att4', group: '관광지', name: '하트록', category: '관광지', desc: '하트 모양 바위로 유명한 사진 명소', lat: 26.7060, lng: 128.0210 },
+        { id: 'n_att5', group: '관광지', name: '비세 후쿠기 가로수길', category: '관광지', desc: '전통 가옥과 후쿠기 나무가 이어지는 길', lat: 26.7040, lng: 127.8830 },
+        { id: 'n_att6', group: '관광지', name: '나키진성터', category: '관광지', desc: '세계유산으로 지정된 류큐왕국 성터', lat: 26.6910, lng: 127.9290 },
+        { id: 'n_att7', group: '관광지', name: '세소코섬', category: '관광지', desc: '아름다운 백사장과 투명한 바다', lat: 26.6400, lng: 127.8580 },
+        { id: 'n_att8', group: '관광지', name: '해양박람회 기념공원', category: '관광지', desc: '수족관, 식물원, 해변을 갖춘 공원', lat: 26.6940, lng: 127.8770 },
+        { id: 'n_att9', group: '관광지', name: '헤도곶', category: '관광지', desc: '오키나와 최북단의 해안 절벽', lat: 26.8700, lng: 128.2630 },
+        { id: 'n_att10', group: '관광지', name: '다이세키린잔', category: '관광지', desc: '독특한 석회암 바위와 아열대 숲', lat: 26.8500, lng: 128.2550 },
+        { id: 'n_eat1', group: '식당', name: '플리퍼 스테이크 하우스', category: '식당', desc: '나고 지역의 유명 스테이크 전문점', lat: 26.5970, lng: 127.9790 },
+        { id: 'n_eat2', group: '식당', name: '키시모토 식당', category: '식당', desc: '전통 오키나와 소바 전문점', lat: 26.6600, lng: 127.8910 },
+        { id: 'n_eat3', group: '식당', name: '카이호우마루', category: '식당', desc: '해산물 요리를 즐기기 좋은 식당', lat: 26.6850, lng: 127.8840 },
+        { id: 'n_eat4', group: '식당', name: '코우리 오션 타워 레스토랑', category: '식당', desc: '바다 전망을 즐기는 레스토랑', lat: 26.6970, lng: 128.0170 },
+        { id: 'n_eat5', group: '식당', name: '야마하라 소바', category: '식당', desc: '현지 스타일의 오키나와 소바', lat: 26.5910, lng: 127.9770 },
+        { id: 'n_eat6', group: '식당', name: '나고 파인애플 파크 레스토랑', category: '식당', desc: '파인애플을 활용한 디저트와 음식', lat: 26.6110, lng: 127.9580 },
+        { id: 'n_eat7', group: '식당', name: '모토부 목장 레스토랑', category: '식당', desc: '오키나와 와규와 스테이크', lat: 26.6600, lng: 127.8900 },
+        { id: 'n_eat8', group: '식당', name: '하나사키 마르쉐 식당가', category: '식당', desc: '해산물과 지역 먹거리', lat: 26.6760, lng: 127.8820 },
+        { id: 'n_eat9', group: '식당', name: '나고 사쿠라 식당', category: '식당', desc: '현지 일본식 식당', lat: 26.5900, lng: 127.9780 },
+        { id: 'n_eat10', group: '식당', name: '코우리섬 해산물 식당가', category: '식당', desc: '신선한 해산물과 오션뷰 식사', lat: 26.6960, lng: 128.0170 },
+        { id: 'n_caf1', group: '카페', name: '코우리 오션 브리즈', category: '카페', desc: '바다를 바라보며 커피를 즐기는 카페', lat: 26.6960, lng: 128.0170 },
+        { id: 'n_caf2', group: '카페', name: '카페 차하야부', category: '카페', desc: '자연 속에서 여유롭게 즐기는 카페', lat: 26.6800, lng: 127.9000 },
+        { id: 'n_caf3', group: '카페', name: '카페 오션 블루', category: '카페', desc: '츄라우미 수족관 주변 바다 전망 카페', lat: 26.6940, lng: 127.8770 },
+        { id: 'n_caf4', group: '카페', name: '카페 하마베', category: '카페', desc: '해안 풍경을 감상하는 휴식 공간', lat: 26.6700, lng: 127.8900 },
+        { id: 'n_caf5', group: '카페', name: '코우리 슈퍼 커피', category: '카페', desc: '섬의 풍경을 즐기는 커피숍', lat: 26.6970, lng: 128.0170 },
+        { id: 'n_caf6', group: '카페', name: '카페 이차라', category: '카페', desc: '숲속의 조용한 분위기와 식사', lat: 26.6730, lng: 127.9100 },
+        { id: 'n_caf7', group: '카페', name: '피자 카페 오키나와', category: '카페', desc: '자연 속에서 피자와 음료를 즐기는 공간', lat: 26.6500, lng: 127.8800 },
+        { id: 'n_caf8', group: '카페', name: '카페 하나사키', category: '카페', desc: '해안 전망과 디저트', lat: 26.6750, lng: 127.8830 },
+        { id: 'n_caf9', group: '카페', name: '나고 파인애플 파크 카페', category: '카페', desc: '파인애플 디저트와 음료', lat: 26.6110, lng: 127.9580 },
+        { id: 'n_caf10', group: '카페', name: '코우리섬 해변 카페', category: '카페', desc: '바다를 보며 쉬기 좋은 카페', lat: 26.6950, lng: 128.0150 },
+        { id: 'n_shp1', group: '쇼핑', name: '나고 이온몰', category: '쇼핑', desc: '북부지역의 대표 쇼핑몰', lat: 26.5880, lng: 127.9800 },
+        { id: 'n_shp2', group: '쇼핑', name: '나고 파인애플 파크 기념품점', category: '쇼핑', desc: '파인애플 과자와 지역 특산품', lat: 26.6110, lng: 127.9580 },
+        { id: 'n_shp3', group: '쇼핑', name: '코우리 오션 타워 기념품점', category: '쇼핑', desc: '섬 관련 기념품과 특산품', lat: 26.6970, lng: 128.0170 },
+        { id: 'n_shp4', group: '쇼핑', name: '츄라우미 수족관 기념품점', category: '쇼핑', desc: '해양생물 캐릭터와 기념품', lat: 26.6940, lng: 127.8770 },
+        { id: 'n_shp5', group: '쇼핑', name: '하나사키 마르쉐', category: '쇼핑', desc: '식품, 특산품, 기념품 쇼핑', lat: 26.6760, lng: 127.8820 },
+        { id: 'n_shp6', group: '쇼핑', name: '나고 시내 쇼핑거리', category: '쇼핑', desc: '현지 상점과 생활용품', lat: 26.5910, lng: 127.9780 },
+        { id: 'n_shp7', group: '쇼핑', name: '모토부 시장', category: '쇼핑', desc: '지역 농산물과 특산품', lat: 26.6600, lng: 127.8920 },
+        { id: 'n_shp8', group: '쇼핑', name: '얀바루 휴게소', category: '쇼핑', desc: '지역 특산물과 농산품 판매', lat: 26.7450, lng: 128.1770 },
+        { id: 'n_shp9', group: '쇼핑', name: '오기미 휴게소', category: '쇼핑', desc: '시콰사 등 지역 특산품 판매', lat: 26.7000, lng: 128.1190 },
+        { id: 'n_shp10', group: '쇼핑', name: '코우리섬 기념품 상점', category: '쇼핑', desc: '섬의 특산품과 기념품', lat: 26.6970, lng: 128.0170 },
+        { id: 'n_act1', group: '액티비티', name: '츄라우미 수족관 관람', category: '액티비티', desc: '고래상어와 다양한 해양생물 관람', lat: 26.6940, lng: 127.8770 },
+        { id: 'n_act2', group: '액티비티', name: '코우리섬 드라이브', category: '액티비티', desc: '코우리 대교를 건너는 드라이브', lat: 26.6970, lng: 128.0170 },
+        { id: 'n_act3', group: '액티비티', name: '코우리섬 스노클링', category: '액티비티', desc: '맑고 투명한 바다에서 해양 체험', lat: 26.6950, lng: 128.0150 },
+        { id: 'n_act4', group: '액티비티', name: '세소코섬 해양 스포츠', category: '액티비티', desc: '스노클링과 해변 액티비티', lat: 26.6400, lng: 127.8580 },
+        { id: 'n_act5', group: '액티비티', name: '비세 후쿠기 숲길 자전거', category: '액티비티', desc: '전통마을과 숲길 자전거 탐방', lat: 26.7040, lng: 127.8830 },
+        { id: 'n_act6', group: '액티비티', name: '얀바루 숲 트레킹', category: '액티비티', desc: '아열대 숲과 희귀 동식물 관찰', lat: 26.7450, lng: 128.1700 },
+        { id: 'n_act7', group: '액티비티', name: '맹그로브 카약', category: '액티비티', desc: '강과 맹그로브 숲 탐험', lat: 26.6300, lng: 128.0200 },
+        { id: 'n_act8', group: '액티비티', name: '다이세키린잔 트레킹', category: '액티비티', desc: '기암괴석과 자연 산책', lat: 26.8500, lng: 128.2550 },
+        { id: 'n_act9', group: '액티비티', name: '헤도곶 해안 감상', category: '액티비티', desc: '오키나와 최북단의 자연경관 감상', lat: 26.8700, lng: 128.2630 },
+        { id: 'n_act10', group: '액티비티', name: '고래 관찰 투어', category: '액티비티', desc: '겨울철 혹등고래 관찰 프로그램', lat: 26.5900, lng: 127.9800 }
+    ]
+};
         let placesData = JSON.parse(JSON.stringify(defaultPlacesData));
+
         try {
             const savedPlaces = localStorage.getItem('okinawa_placesData');
             if (savedPlaces) {
@@ -297,32 +622,117 @@
                     }
                 });
             }
-        } catch(e) {}
+        } catch(e) { console.error('기존 장소 데이터 로드 실패'); }
 
         let tripData = { startDate: '2026-12-27', endDate: '2027-01-03', days: [], activeDay: -1 };
         try {
             const savedTrip = localStorage.getItem('okinawa_tripData');
             if (savedTrip) tripData = JSON.parse(savedTrip);
-        } catch(e) {}
+        } catch(e) { console.error('기존 일정 데이터 로드 실패'); }
 
         let currentRegion = 'south'; 
         let currentCategory = '관광지';
+        let addMode = 'place'; 
+        let targetAddDayIdx = 0; 
         let leafletMap = null; 
+
         let headerFp = null;
         let settingsFp = null;
 
+        // 경비 정산 앱 관련 변수 및 로컬스토리지 연동
+        let participants = ["찬팅", "미르", "마스터", "샤인"];
+        let settlementMode = "individual"; // "individual" | "couple"
+        let couples = [
+            { id: 1, member1: "찬팅", member2: "미르", rep: "찬팅" },
+            { id: 2, member1: "마스터", member2: "샤인", rep: "마스터" }
+        ];
+        let expenses = [
+            { id: 1, title: "숙박", amount: 70000, payer: "찬팅", targets: ["찬팅", "미르", "마스터", "샤인"] },
+            { id: 2, title: "식사", amount: 65000, payer: "미르", targets: ["찬팅", "미르", "마스터", "샤인"] }
+        ];
+
+        try {
+            const savedExpenseData = localStorage.getItem('okinawa_expenseAppData');
+            if (savedExpenseData) {
+                const parsedExp = JSON.parse(savedExpenseData);
+                if (parsedExp.participants) participants = parsedExp.participants;
+                if (parsedExp.expenses) expenses = parsedExp.expenses;
+                if (parsedExp.settlementMode) settlementMode = parsedExp.settlementMode;
+                if (Array.isArray(parsedExp.couples)) couples = parsedExp.couples;
+                if (parsedExp.tripTitle !== undefined) {
+                    setTimeout(() => {
+                        const titleInput = document.getElementById('tripTitleInput');
+                        if (titleInput) {
+                            titleInput.value = parsedExp.tripTitle;
+                            updateTripTitle();
+                        }
+                    }, 100);
+                }
+            }
+        } catch(e) { console.error('경비 데이터 로드 실패'); }
+
+        // 사용자가 명시적으로 저장 버튼을 누를 때만 알림 메시지 출력
+        function saveExpenseAppData() {
+            const tripTitle = document.getElementById('tripTitleInput') ? document.getElementById('tripTitleInput').value : '';
+            const expensePayload = {
+                tripTitle: tripTitle,
+                participants: participants,
+                settlementMode: settlementMode,
+                couples: couples,
+                expenses: expenses
+            };
+            localStorage.setItem('okinawa_expenseAppData', JSON.stringify(expensePayload));
+            alert('경비 데이터가 로컬스토리지에 안전하게 저장되었습니다!');
+        }
+
+        // 백그라운드 자동 저장 (알림 없음)
+        function autoSaveExpenseAppData() {
+            const tripTitle = document.getElementById('tripTitleInput') ? document.getElementById('tripTitleInput').value : '';
+            const expensePayload = {
+                tripTitle: tripTitle,
+                participants: participants,
+                settlementMode: settlementMode,
+                couples: couples,
+                expenses: expenses
+            };
+            localStorage.setItem('okinawa_expenseAppData', JSON.stringify(expensePayload));
+        }
+
+        function updateStickyPositions() {
+            const header = document.querySelector('header');
+            const tabsWrapper = document.getElementById('day-tabs-wrapper');
+            if(header && tabsWrapper) {
+                const hHeight = header.offsetHeight;
+                tabsWrapper.style.top = hHeight + 'px';
+                
+                const dayHeaders = document.querySelectorAll('.day-header-sticky');
+                dayHeaders.forEach(el => {
+                    el.style.top = (hHeight + tabsWrapper.offsetHeight - 1) + 'px';
+                });
+            }
+        }
+        window.addEventListener('resize', updateStickyPositions);
+
         window.onload = function() {
-            const fpOptions = { mode: "range", locale: "ko", dateFormat: "Y-m-d", defaultDate: [tripData.startDate, tripData.endDate], showMonths: 2, disableMobile: true };
-            
+            const fpOptions = {
+                mode: "range", locale: "ko", dateFormat: "Y-m-d",
+                defaultDate: [tripData.startDate, tripData.endDate],
+                showMonths: window.innerWidth > 640 ? 2 : 1, 
+                disableMobile: true
+            };
+
             headerFp = flatpickr("#header-date-trigger", {
                 ...fpOptions,
                 onClose: function(selectedDates) {
                     if (selectedDates.length === 2) {
                         const format = flatpickr.formatDate;
-                        tripData.startDate = format(selectedDates[0], "Y-m-d"); tripData.endDate = format(selectedDates[1], "Y-m-d");
+                        tripData.startDate = format(selectedDates[0], "Y-m-d");
+                        tripData.endDate = format(selectedDates[1], "Y-m-d");
                         if (settingsFp) settingsFp.setDate(selectedDates); 
                         generateDaysFromDates(); updateHeaderDateDisplay(); renderPlanner(); saveDataToLocalStorage();
-                    } else { headerFp.setDate([tripData.startDate, tripData.endDate]); }
+                    } else {
+                        headerFp.setDate([tripData.startDate, tripData.endDate]);
+                    }
                 }
             });
 
@@ -332,25 +742,31 @@
             updateHeaderDateDisplay();
             renderPlaces();
             renderPlanner();
+            initExpenseApp();
         };
 
         function updateHeaderDateDisplay() {
-            const startVal = tripData.startDate || '2026-12-27'; const endVal = tripData.endDate || '2027-01-03';
+            const startVal = tripData.startDate || '2026-12-27';
+            const endVal = tripData.endDate || '2027-01-03';
             const format = (dateStr) => dateStr.replace(/-/g, '. ') + '.';
             document.getElementById('header-date-display').innerText = `${format(startVal)} - ${format(endVal)}`;
         }
 
         function toggleCompanions() {
-            const container = document.getElementById('day-companions-container'); const btn = document.getElementById('companionsToggleBtn');
-            if (container.classList.contains('hidden')) { container.classList.remove('hidden'); btn.innerText = '숨기기'; } 
-            else { container.classList.add('hidden'); btn.innerText = '보이기'; }
+            const container = document.getElementById('day-companions-container');
+            const btn = document.getElementById('companionsToggleBtn');
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden'); btn.innerText = '숨기기';
+            } else {
+                container.classList.add('hidden'); btn.innerText = '보이기';
+            }
         }
 
         function openSettingsModal() { 
             if (settingsFp) settingsFp.setDate([tripData.startDate, tripData.endDate]);
             let compHtml = '';
             tripData.days.forEach((d, i) => {
-                compHtml += `<div class="flex items-center gap-2 w-full"><label class="w-11 text-xs font-bold text-slate-600 whitespace-nowrap">Day ${d.dayNum}</label><input type="text" id="comp-day-${i}" value="${d.companions || ''}" placeholder="예: 찬다, 냐나, 미르" class="flex-1 min-w-0 box-border bg-slate-50 border border-slate-300 text-slate-800 px-2 py-1.5 rounded text-[13px] outline-none focus:border-cyan-400"></div>`;
+                compHtml += `<div class="flex items-center gap-2 w-full"><label class="w-12 text-sm font-bold text-slate-600 whitespace-nowrap">Day ${d.dayNum}</label><input type="text" id="comp-day-${i}" value="${d.companions || ''}" placeholder="예: 찬다, 냐나, 미르" class="flex-1 min-w-0 box-border bg-slate-50 border border-slate-300 text-slate-800 px-2 py-1.5 rounded text-xs outline-none focus:border-cyan-400"></div>`;
             });
             document.getElementById('day-companions-container').innerHTML = compHtml;
             document.getElementById('day-companions-container').classList.add('hidden');
@@ -359,14 +775,16 @@
         }
         
         function closeSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
+
         function shareFromSettings() { closeSettingsModal(); shareAllDaysAsImages(); }
+        function openSettingsTimelineAdd() { closeSettingsModal(); let targetDay = tripData.activeDay === -1 ? 0 : tripData.activeDay; openTimelineAddModal('place', targetDay); }
 
         function saveDataToLocalStorage() {
             localStorage.setItem('okinawa_placesData', JSON.stringify(placesData));
             localStorage.setItem('okinawa_tripData', JSON.stringify(tripData));
         }
 
-        function manualSaveData() { saveDataToLocalStorage(); alert('일정이 안전하게 저장되었습니다!'); }
+        function manualSaveData() { saveDataToLocalStorage(); alert('일정이 브라우저에 안전하게 저장되었습니다!'); }
 
         function exportBackupData() {
             const backupPayload = { version: "1.0", exportedAt: new Date().toLocaleString(), tripData: tripData, placesData: placesData };
@@ -392,7 +810,7 @@
                     }
                     generateDaysFromDates(); updateHeaderDateDisplay(); renderPlaces(); renderPlanner();
                     alert('백업 데이터가 성공적으로 복구되었습니다!'); closeSettingsModal();
-                } catch (err) { alert('파일 오류 발생.'); }
+                } catch (err) { alert('파일을 읽는 중 오류가 발생했습니다.'); }
                 event.target.value = ''; 
             };
             reader.readAsText(file);
@@ -422,7 +840,7 @@
                 const format = flatpickr.formatDate;
                 tripData.startDate = format(settingsFp.selectedDates[0], "Y-m-d"); tripData.endDate = format(settingsFp.selectedDates[1], "Y-m-d");
                 if (headerFp) headerFp.setDate(settingsFp.selectedDates);
-            } else { alert("기간을 달력에서 모두 선택해주세요."); return; }
+            } else { alert("여행 기간(출발일과 귀국일)을 달력에서 모두 선택해주세요."); return; }
             
             tripData.days.forEach((d, i) => {
                 let input = document.getElementById(`comp-day-${i}`); if(input) d.companions = input.value.trim();
@@ -453,18 +871,18 @@
                     document.getElementById('customLat').value = lat; document.getElementById('customLng').value = lon;
                     alert(`[${nameInput}]의 위치를 찾았습니다!\n위도: ${lat}, 경도: ${lon}`);
                 } else {
-                    if (confirm(`검색 결과가 없습니다.\n구글 맵에서 직접 좌표를 복사하시겠습니까?`)) {
+                    if (confirm(`자동 검색 결과가 없습니다.\n구글 맵에서 직접 [${nameInput}]의 좌표를 복사하시겠습니까?`)) {
                         window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(queryName)}`, '_blank');
                     }
                 }
-            } catch (err) { console.error(err); alert('오류가 발생했습니다.'); } 
+            } catch (err) { console.error(err); alert('위치 정보를 불러오는 중 오류가 발생했습니다.'); } 
             finally { btn.innerHTML = originalText; btn.disabled = false; }
         }
 
         function switchRegion(region) {
             currentRegion = region;
-            const activeClass = 'flex-1 py-1.5 rounded-lg text-xs font-bold transition bg-white text-cyan-700 shadow-sm';
-            const inactiveClass = 'flex-1 py-1.5 rounded-lg text-xs font-bold transition text-slate-500 hover:text-slate-800';
+            const activeClass = 'flex-1 py-2 rounded-lg text-xs sm:text-sm font-bold transition bg-white text-cyan-700 shadow-sm';
+            const inactiveClass = 'flex-1 py-2 rounded-lg text-xs sm:text-sm font-bold transition text-slate-500 hover:text-slate-800';
             document.getElementById('btn-south').className = region === 'south' ? activeClass : inactiveClass;
             document.getElementById('btn-central').className = region === 'central' ? activeClass : inactiveClass;
             document.getElementById('btn-north').className = region === 'north' ? activeClass : inactiveClass;
@@ -475,20 +893,9 @@
             currentCategory = category;
             ['관광지', '식당', '카페', '쇼핑', '액티비티', '호텔'].forEach(cat => {
                 const btn = document.getElementById(`cat-${cat}`);
-                if (btn) btn.className = (cat === category) ? 'px-3 py-1 rounded text-[11px] font-bold transition bg-cyan-600 text-white shadow-sm' : 'px-3 py-1 rounded text-[11px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100';
+                if (btn) btn.className = (cat === category) ? 'px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition bg-cyan-600 text-white shadow-sm' : 'px-4 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100';
             });
             renderPlaces();
-        }
-
-        function focusRightPanel(category) {
-            if (tripData.activeDay === -1) {
-                alert('좌측에서 먼저 일정을 추가할 Day를 선택해주세요.');
-                return;
-            }
-            switchCategory(category);
-            const panel = document.getElementById('right-sidebar');
-            panel.classList.add('ring-4', 'ring-cyan-300', 'transition-all');
-            setTimeout(() => panel.classList.remove('ring-4', 'ring-cyan-300'), 500);
         }
 
         function renderPlaces() {
@@ -496,28 +903,36 @@
             const places = placesData[currentRegion] || [];
             const filteredPlaces = places.filter(p => p.group === currentCategory);
             
+            const catMapBtn = document.getElementById('categoryMapBtn');
+            if(catMapBtn) catMapBtn.innerHTML = `<i class="fa-solid fa-map-location-dot"></i> 현재 분류(${currentCategory}) 장소 지도보기`;
+
             let html = '';
             if (filteredPlaces.length === 0) {
-                html = `<div class="text-center py-10 text-slate-400 text-sm bg-white rounded-xl border border-slate-200">해당 카테고리에 장소가 없습니다.</div>`;
+                html = `<div class="col-span-1 sm:col-span-2 text-center py-12 text-slate-400 text-sm">해당 카테고리에 등록된 장소가 없습니다.</div>`;
             } else {
-                filteredPlaces.forEach(p => {
+                filteredPlaces.forEach((p, idx) => {
                     let singleMapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' 오키나와')}`;
+                    let numBadge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded font-extrabold mr-1.5 shrink-0 mt-[3px]">${idx + 1}</span>`;
+                    
                     html += `
-                    <div class="bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col p-3 hover:border-cyan-400 transition w-full">
-                        <div class="flex justify-between items-start mb-1.5 w-full">
-                            <div class="flex items-start gap-2 flex-1 min-w-0">
-                                <button onclick="addPlaceFromBrowser('${p.id}')" class="shrink-0 bg-cyan-600 hover:bg-cyan-700 text-white text-[11px] font-bold py-1 px-2 rounded transition shadow-sm mt-0.5" title="일정에 추가">
+                    <div class="min-w-0 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col p-4 hover:border-cyan-300 transition relative w-full h-full overflow-hidden">
+                        <div class="flex justify-between items-start mb-2 gap-2 w-full min-w-0">
+                            <div class="flex items-start flex-1 min-w-0">
+                                <button onclick="addPlaceFromBrowser('${p.id}')" class="shrink-0 bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold py-1 px-2 rounded transition shadow-sm mr-2 whitespace-nowrap" title="선택">
                                     <i class="fa-solid fa-plus"></i> 추가
                                 </button>
-                                <h4 class="font-bold text-[13px] text-slate-900 leading-tight pt-0.5 line-clamp-2 break-words flex-1">${p.name}</h4>
+                                <h4 class="font-bold text-sm text-slate-900 leading-tight pt-0.5 break-words flex-1 min-w-0 flex items-start">
+                                    ${numBadge}
+                                    <span class="line-clamp-2">${p.name}</span>
+                                </h4>
                             </div>
-                            <div class="flex items-center gap-1 shrink-0 ml-2">
-                                <button onclick="openEditPlaceModal('${currentRegion}', '${p.id}')" class="text-amber-500 hover:bg-amber-50 p-1 rounded" title="수정"><i class="fa-solid fa-pen-to-square text-[11px]"></i></button>
-                                <a href="${singleMapUrl}" target="_blank" class="text-blue-500 hover:bg-blue-50 p-1 rounded" title="구글 맵"><i class="fa-solid fa-map-location-dot text-[11px]"></i></a>
-                                <button onclick="removePlaceItem('${p.id}')" class="text-rose-400 hover:text-rose-600 p-1 rounded" title="삭제"><i class="fa-solid fa-trash-can text-[11px]"></i></button>
+                            <div class="flex items-center gap-1 shrink-0 ml-1">
+                                <button onclick="openEditPlaceModal('${currentRegion}', '${p.id}')" class="text-amber-500 hover:bg-amber-50 p-1.5 rounded transition" title="장소 정보 수정"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <a href="${singleMapUrl}" target="_blank" class="text-blue-500 hover:bg-blue-50 p-1.5 rounded-full transition" title="구글 맵 보기"><i class="fa-solid fa-map-location-dot"></i></a>
+                                <button onclick="removePlaceItem('${p.id}')" class="text-rose-400 hover:text-rose-600 p-1.5 rounded transition" title="장소 삭제"><i class="fa-solid fa-trash-can"></i></button>
                             </div>
                         </div>
-                        <p class="text-[11px] text-slate-500 leading-relaxed line-clamp-2">${p.desc}</p>
+                        <p class="text-xs text-slate-500 leading-relaxed break-words line-clamp-2 w-full min-w-0">${p.desc}</p>
                     </div>
                     `;
                 });
@@ -526,7 +941,7 @@
         }
 
         function removePlaceItem(placeId) {
-            if (confirm('이 장소를 목록에서 삭제하시겠습니까? (일정표의 장소는 유지됨)')) {
+            if (confirm('이 장소를 목록에서 삭제하시겠습니까?\n(일정표에 이미 추가된 장소는 유지됩니다)')) {
                 if (placesData[currentRegion]) {
                     placesData[currentRegion] = placesData[currentRegion].filter(p => p.id !== placeId);
                     renderPlaces(); saveDataToLocalStorage();
@@ -535,42 +950,32 @@
         }
 
         function addPlaceFromBrowser(placeId) {
-            if (tripData.activeDay === -1) {
-                alert('좌측에서 장소를 추가할 Day를 먼저 선택해주세요!');
-                return;
-            }
-
             let targetPlace = Object.values(placesData).flat().find(p => p.id === placeId);
             if(targetPlace) {
                 let eventObj = JSON.parse(JSON.stringify(targetPlace));
-                let isHotel = targetPlace.group === '호텔';
-                eventObj.type = isHotel ? 'hotel' : 'place';
+                eventObj.type = (addMode === 'hotel' || targetPlace.group === '호텔') ? 'hotel' : 'place';
                 eventObj.transport = '운전';
                 eventObj.memo = ''; 
                 
-                let targetDay = tripData.days[tripData.activeDay];
+                let targetDay = tripData.days[targetAddDayIdx];
 
-                if (isHotel) {
+                if (addMode === 'hotel') {
                     if (targetDay.events.length > 0 && (targetDay.events[0].type === 'hotel' || targetDay.events[0].group === '호텔')) {
-                        targetDay.events[0] = eventObj; 
-                    } else { 
-                        targetDay.events.unshift(eventObj); 
-                    }
+                        targetDay.events[0] = eventObj;
+                    } else { targetDay.events.unshift(eventObj); }
+                    alert(`[${targetPlace.name}] 숙소가 Day ${targetDay.dayNum} 일정에 등록되었습니다!`);
                 } else {
-                    targetDay.events.push(eventObj); 
+                    targetDay.events.push(eventObj);
+                    alert(`[${targetPlace.name}] 장소가 방문 순서에 추가되었습니다!`);
                 }
                 
-                renderPlanner(); 
-                saveDataToLocalStorage(); 
-                
-                const dayContent = document.getElementById('day-content');
-                setTimeout(() => dayContent.scrollTo({ top: dayContent.scrollHeight, behavior: 'smooth' }), 100);
+                renderPlanner(); saveDataToLocalStorage(); closeTimelineAddModal();
             }
         }
 
         function calculateRouteInfo(lat1, lon1, lat2, lon2, mode) {
             let nLat1 = parseFloat(lat1); let nLon1 = parseFloat(lon1); let nLat2 = parseFloat(lat2); let nLon2 = parseFloat(lon2);
-            if (isNaN(nLat1) || isNaN(nLon1) || isNaN(nLat2) || isNaN(nLon2)) return { distance: '-', duration: '-' };
+            if (isNaN(nLat1) || isNaN(nLon1) || isNaN(nLat2) || isNaN(nLon2)) return { distance: '알 수 없음', duration: '-' };
             const R = 6371; const dLat = (nLat2 - nLat1) * (Math.PI / 180); const dLon = (nLon2 - nLon1) * (Math.PI / 180);
             const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(nLat1 * (Math.PI / 180)) * Math.cos(nLat2 * (Math.PI / 180)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); let d = R * c; 
@@ -591,8 +996,8 @@
         function renderDayContent(dayIdx, isAllView) {
             const currentDayObj = tripData.days[dayIdx];
             if (!currentDayObj) return '';
-            let eventsHtml = ''; let prevValidEvent = null;
 
+            let eventsHtml = ''; let coordIndex = 1; let prevValidEvent = null;
             const firstEvt = currentDayObj.events[0];
             const hasHotel = firstEvt && (firstEvt.type === 'hotel' || firstEvt.group === '호텔');
 
@@ -600,41 +1005,40 @@
                 let hotelMapQ = (firstEvt.lat && firstEvt.lng) ? `${firstEvt.lat},${firstEvt.lng}` : encodeURIComponent(firstEvt.name + ' 오키나와');
                 const hotelMapUrl = `https://www.google.com/maps/search/?api=1&query=${hotelMapQ}`;
 
+                let hotelDeleteBtn = isAllView ? '' : `<button onclick="removeEvent(${dayIdx}, 0)" class="text-rose-400 hover:bg-rose-50 w-8 h-8 rounded-full flex items-center justify-center transition" title="숙소 삭제"><i class="fa-solid fa-trash-can text-sm sm:text-base"></i></button>`;
+                let memoInputHtml = `<input type="text" value="${firstEvt.memo || ''}" oninput="updateEventMemo(${dayIdx}, 0, this.value)" placeholder="메모 (체크인 시간 등)" ${isAllView ? 'readonly' : ''} class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-[11px] sm:text-[12px] text-slate-700 outline-none ${isAllView ? 'cursor-default' : 'focus:bg-white focus:border-cyan-400'}">`;
+
                 eventsHtml += `
-                    <div class="flex flex-col bg-indigo-50/40 border-b border-slate-200 shadow-sm py-4 px-6 gap-2">
-                        <div class="flex items-center gap-3">
-                            <div class="w-8 flex justify-center shrink-0">
-                                <span class="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-sm shadow-md"><i class="fa-solid fa-bed"></i></span>
+                    <div class="px-3 sm:px-4 py-1.5">
+                        <div class="flex flex-col bg-indigo-50/60 border border-indigo-100 rounded-2xl shadow-sm py-3 px-4 gap-2">
+                            <div class="flex items-center justify-between w-full">
+                                <div class="flex items-center gap-3 flex-1 min-w-0">
+                                    <span class="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm shrink-0"><i class="fa-solid fa-bed"></i></span>
+                                    <h4 class="font-bold text-[16px] sm:text-[19px] text-slate-900 break-keep leading-snug line-clamp-2">${firstEvt.name}</h4>
+                                </div>
+                                <div class="flex items-center gap-1.5 shrink-0 pl-2 border-l border-indigo-200/60">
+                                    <a href="${hotelMapUrl}" target="_blank" class="text-blue-500 hover:bg-blue-50 w-8 h-8 rounded-full flex items-center justify-center transition" title="지도보기"><i class="fa-solid fa-map-location-dot text-sm sm:text-base"></i></a>
+                                    ${hotelDeleteBtn}
+                                </div>
                             </div>
-                            <div class="flex items-center gap-2 flex-1 min-w-0">
-                                <span class="text-[11px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded shrink-0">숙소</span>
-                                <h4 class="font-bold text-base sm:text-lg text-slate-900 break-keep leading-snug line-clamp-2">${firstEvt.name}</h4>
-                            </div>
-                            <div class="flex items-center gap-2 shrink-0">
-                                <a href="${hotelMapUrl}" target="_blank" class="text-blue-500 hover:bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-map-location-dot"></i></a>
-                                <button onclick="removeEvent(${dayIdx}, 0)" class="text-rose-400 hover:bg-rose-100 w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-trash-can"></i></button>
-                            </div>
-                        </div>
-                        <div class="pl-11 pr-1">
-                            <input type="text" value="${firstEvt.memo || ''}" oninput="updateEventMemo(${dayIdx}, 0, this.value)" placeholder="메모 (체크인 시간, 예약번호 등)" class="w-full bg-white/80 border border-indigo-100 rounded px-3 py-1.5 text-sm text-slate-700 outline-none focus:bg-white focus:border-indigo-300">
+                            <div class="w-full">${memoInputHtml}</div>
                         </div>
                     </div>
                 `;
             } else {
-                eventsHtml += `<div class="flex items-center justify-center bg-white border-b border-slate-200 py-3 px-6">
-                    <button onclick="focusRightPanel('호텔')" class="w-full bg-slate-50 text-indigo-600 py-2.5 px-2 rounded-lg font-bold text-sm transition border border-dashed border-indigo-200 hover:bg-indigo-50 flex items-center justify-center gap-2"><i class="fa-solid fa-bed"></i> Day ${currentDayObj.dayNum} 숙소 먼저 선택하기</button>
-                </div>`;
+                if (!isAllView) {
+                    eventsHtml += `<div class="px-3 sm:px-4 py-2 bg-white">
+                        <button onclick="openTimelineAddModal('hotel', ${dayIdx})" class="w-full bg-slate-50 text-indigo-600 py-2.5 px-2 rounded-xl font-bold text-sm sm:text-base transition border border-dashed border-indigo-300 flex items-center justify-center gap-1.5 shadow-sm"><i class="fa-solid fa-bed"></i> Day ${currentDayObj.dayNum} 숙소 추가</button>
+                    </div>`;
+                }
             }
 
             const startIndex = hasHotel ? 1 : 0;
             const actualEvents = currentDayObj.events.slice(startIndex);
 
             if (actualEvents.length === 0 && !hasHotel) {
-                eventsHtml += `<div class="py-16 mx-6 mt-6 bg-slate-50 rounded-2xl border border-dashed border-slate-300 text-center flex flex-col items-center justify-center">
-                    <i class="fa-solid fa-map-location-dot text-4xl text-slate-200 mb-3"></i>
-                    <p class="text-sm text-slate-500 mb-4">등록된 일정이 없습니다.</p>
-                    <p class="text-xs text-cyan-600 font-bold bg-cyan-50 px-3 py-1.5 rounded-full"><i class="fa-solid fa-hand-point-right"></i> 우측 패널에서 장소를 선택하여 추가하세요</p>
-                </div>`;
+                let emptyAddBtn = isAllView ? '' : `<button onclick="openTimelineAddModal('place', ${dayIdx})" class="bg-cyan-600 text-white font-bold text-sm sm:text-base px-5 py-2.5 rounded-lg shadow-sm">일정 추가하기</button>`;
+                eventsHtml += `<div class="py-12 mx-4 sm:mx-6 mt-4 bg-white rounded-2xl border border-dashed border-slate-300 text-center flex flex-col items-center justify-center"><i class="fa-solid fa-map-location-dot text-4xl text-slate-200 mb-3"></i><p class="text-sm sm:text-base text-slate-500 mb-4">등록된 방문 순서가 없습니다.</p>${emptyAddBtn}</div>`;
             } else {
                 actualEvents.forEach((evt, subIdx) => {
                     const evtIdx = startIndex + subIdx;
@@ -646,104 +1050,124 @@
                         let travelModeMap = { '운전': 'driving', '대중교통': 'transit', '도보': 'walking', '자전거': 'bicycling' };
                         let routeUrl = `https://www.google.com/maps/dir/?api=1&origin=${prevValidEvent.lat},${prevValidEvent.lng}&destination=${evt.lat},${evt.lng}&travelmode=${travelModeMap[currentTransport]}`;
 
+                        let transportSelectorHtml = `<select onchange="updateEventTransport(${dayIdx}, ${evtIdx}, this.value)" ${isAllView ? 'disabled' : ''} class="bg-white border border-slate-200 rounded-md px-2.5 py-1.5 outline-none text-slate-700 font-normal shadow-sm ${isAllView ? 'cursor-default appearance-none' : 'cursor-pointer hover:border-cyan-400'} text-[12px] sm:text-[12px]">
+                                <option value="운전" ${currentTransport==='운전'?'selected':''}>운전</option>
+                                <option value="대중교통" ${currentTransport==='대중교통'?'selected':''}>대중교통</option>
+                                <option value="도보" ${currentTransport==='도보'?'selected':''}>도보</option>
+                                <option value="자전거" ${currentTransport==='자전거'?'selected':''}>자전거</option>
+                            </select>`;
+
                         eventsHtml += `
-                            <div class="my-0 flex items-center justify-between bg-slate-50/80 px-6 py-2.5 border-y border-x-0 text-sm text-slate-600 border-slate-200 w-full">
-                                <div class="flex items-center gap-2 pl-11">
-                                    <select onchange="updateEventTransport(${dayIdx}, ${evtIdx}, this.value)" class="bg-white border border-slate-200 rounded px-1.5 py-0.5 outline-none text-slate-700 font-bold shadow-sm cursor-pointer hover:border-cyan-400 text-[11px]">
-                                        <option value="운전" ${currentTransport==='운전'?'selected':''}>🚗 운전</option>
-                                        <option value="대중교통" ${currentTransport==='대중교통'?'selected':''}>🚌 대중교통</option>
-                                        <option value="도보" ${currentTransport==='도보'?'selected':''}>🚶 도보</option>
-                                        <option value="자전거" ${currentTransport==='자전거'?'selected':''}>🚲 자전거</option>
-                                    </select>
+                            <div class="my-1.5 flex items-center justify-between bg-slate-100/80 mx-3 sm:mx-4 px-4 py-2.5 rounded-xl border border-slate-200/80 text-[14px] sm:text-[14px] text-slate-600 shadow-sm w-[calc(100%-1.5rem)] sm:w-[calc(100%-2rem)]">
+                                <div class="flex items-center gap-2">
+                                    ${transportSelectorHtml}
                                 </div>
-                                <div class="flex items-center gap-3 shrink-0 pr-1 text-sm sm:text-base">
-                                    <span>거리: <strong class="text-slate-800">${route.distance}</strong></span>
-                                    <span>소요: <strong class="text-cyan-600">${route.duration}</strong></span>
-                                    <a href="${routeUrl}" target="_blank" class="ml-1 text-blue-500 hover:text-blue-700 font-bold"><i class="fa-solid fa-route text-lg"></i></a>
+                                <div class="flex items-center gap-2 sm:gap-3 shrink-0 font-normal">
+                                    <span class="whitespace-nowrap">거리: <strong class="font-normal text-slate-800">${route.distance}</strong></span>
+                                    <span class="whitespace-nowrap">소요: <strong class="font-normal text-cyan-600">${route.duration}</strong></span>
+                                    <a href="${routeUrl}" target="_blank" class="ml-1 bg-white border border-blue-200 text-blue-600 px-2 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 font-normal text-[14px] sm:text-[14px]" title="경로 보기"><i class="fa-solid fa-route"></i></a>
                                 </div>
                             </div>
                         `;
                     }
 
-                    let isMidHotel = (evt.type === 'hotel' || evt.group === '호텔');
-                    if (hasCoords) { prevValidEvent = evt; }
-                    let iconTheme = isMidHotel ? 'bg-indigo-600' : 'bg-cyan-600'; 
-                    let displayIcon = isMidHotel ? '<i class="fa-solid fa-bed"></i>' : '<i class="fa-solid fa-location-dot"></i>';
-                    const numCircle = `<span class="w-7 h-7 ${iconTheme} text-white rounded-full flex items-center justify-center font-bold text-sm shadow-md shrink-0">${displayIcon}</span>`;
+                    let displayNum = ''; let isMidHotel = (evt.type === 'hotel' || evt.group === '호텔');
+                    if (hasCoords) { displayNum = coordIndex++; prevValidEvent = evt; }
+                    let iconTheme = isMidHotel ? 'bg-indigo-600' : 'bg-cyan-600'; let displayIcon = isMidHotel ? '<i class="fa-solid fa-bed text-[10px]"></i>' : displayNum;
+                    const numCircle = displayNum ? `<span class="w-6 h-6 ${iconTheme} text-white rounded-full flex items-center justify-center font-extrabold text-[11px] sm:text-xs shadow-sm shrink-0">${displayIcon}</span>` : `<span class="w-6 h-6 ${iconTheme} text-white rounded-full flex items-center justify-center font-bold text-[9px] shadow-sm shrink-0"><i class="fa-solid fa-location-dot"></i></span>`;
                     
                     let singleMapUrl = `https://www.google.com/maps/search/?api=1&query=${(evt.lat && evt.lng) ? evt.lat+','+evt.lng : encodeURIComponent(evt.name + ' 오키나와')}`;
-                    let moveUpBtn = subIdx > 0 ? `<button onclick="moveEvent(${dayIdx}, ${evtIdx}, -1)" class="text-slate-400 hover:text-slate-700 w-full flex justify-center py-1 transition"><i class="fa-solid fa-chevron-up text-[10px]"></i></button>` : `<span class="py-1 w-full flex justify-center invisible"><i class="fa-solid fa-chevron-up text-[10px]"></i></span>`;
-                    let moveDownBtn = subIdx < actualEvents.length - 1 ? `<button onclick="moveEvent(${dayIdx}, ${evtIdx}, 1)" class="text-slate-400 hover:text-slate-700 w-full flex justify-center py-1 transition"><i class="fa-solid fa-chevron-down text-[10px]"></i></button>` : `<span class="py-1 w-full flex justify-center invisible"><i class="fa-solid fa-chevron-down text-[10px]"></i></span>`;
+                    
+                    let moveUpBtn = `<button onclick="moveEvent(${dayIdx}, ${evtIdx}, -1)" class="w-full h-1/2 bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition border-b border-slate-200" title="위로"><i class="fa-solid fa-chevron-up text-xs"></i></button>`;
+                    let moveDownBtn = `<button onclick="moveEvent(${dayIdx}, ${evtIdx}, 1)" class="w-full h-1/2 bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition" title="아래로"><i class="fa-solid fa-chevron-down text-xs"></i></button>`;
+                    let reorderBoxHtml = isAllView ? '' : `<div class="flex flex-col w-7 h-[38px] bg-slate-50 rounded border border-slate-200 overflow-hidden shrink-0 shadow-inner ml-2">${moveUpBtn}${moveDownBtn}</div>`;
+                    let deleteBtnHtml = isAllView ? '' : `<button onclick="removeEvent(${dayIdx}, ${evtIdx})" class="text-rose-400 hover:bg-rose-50 w-8 h-8 rounded-full flex items-center justify-center transition" title="삭제"><i class="fa-solid fa-trash-can text-sm sm:text-base"></i></button>`;
+
+                    let memoInputHtml = `<input type="text" value="${evt.memo || ''}" oninput="updateEventMemo(${dayIdx}, ${evtIdx}, this.value)" placeholder="메모 (주차, 입장료 등)" ${isAllView ? 'readonly' : ''} class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-[12px] sm:text-[12px] text-slate-700 outline-none ${isAllView ? 'cursor-default' : 'focus:bg-white focus:border-cyan-400'}">`;
 
                     eventsHtml += `
-                        <div class="flex flex-col bg-white border-b border-slate-100 overflow-hidden py-4 px-6 gap-2 hover:bg-slate-50/50 transition">
-                            <div class="flex items-center gap-3 w-full">
-                                <div class="flex flex-col justify-center items-center w-6 bg-slate-50 rounded border border-slate-200 shrink-0 py-0.5">${moveUpBtn}${moveDownBtn}</div>
-                                <div class="flex items-center gap-3 flex-1 min-w-0 pl-1">
-                                    ${numCircle}
-                                    ${isMidHotel ? `<span class="text-[11px] font-bold text-indigo-700 bg-indigo-100 px-1.5 py-0.5 rounded shrink-0">숙소</span>` : ''}
-                                    <h4 class="font-bold text-base sm:text-lg text-slate-900 break-keep leading-snug line-clamp-2">${evt.name}</h4>
+                        <div class="px-3 sm:px-4 py-1.5">
+                            <div class="flex flex-col bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden py-3 px-4 gap-2">
+                                <div class="flex items-center justify-between w-full">
+                                    <div class="flex items-center gap-3 flex-1 min-w-0">
+                                        ${numCircle}
+                                        <h4 class="font-bold text-[16px] sm:text-[19px] text-slate-900 break-keep leading-snug line-clamp-2">${evt.name}</h4>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 shrink-0 pl-2 border-l border-slate-100">
+                                        <a href="${singleMapUrl}" target="_blank" class="text-blue-500 hover:bg-blue-50 w-8 h-8 rounded-full flex items-center justify-center transition" title="지도보기"><i class="fa-solid fa-map-location-dot text-sm sm:text-base"></i></a>
+                                        ${deleteBtnHtml}
+                                    </div>
                                 </div>
-                                <div class="flex items-center gap-2 shrink-0">
-                                    <a href="${singleMapUrl}" target="_blank" class="text-blue-500 hover:bg-blue-100 w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-map-location-dot"></i></a>
-                                    <button onclick="removeEvent(${dayIdx}, ${evtIdx})" class="text-rose-400 hover:bg-rose-100 w-8 h-8 rounded-full flex items-center justify-center transition"><i class="fa-solid fa-trash-can"></i></button>
+                                <div class="flex items-center w-full">
+                                    <div class="flex-1 min-w-0">
+                                        ${memoInputHtml}
+                                    </div>
+                                    ${reorderBoxHtml}
                                 </div>
-                            </div>
-                            <div class="pl-12 pr-1 ml-6">
-                                <input type="text" value="${evt.memo || ''}" oninput="updateEventMemo(${dayIdx}, ${evtIdx}, this.value)" placeholder="메모 (주차, 입장료 등)" class="w-full bg-slate-50 border border-slate-100 rounded px-3 py-1.5 text-sm text-slate-700 outline-none focus:bg-white focus:border-cyan-300 transition">
                             </div>
                         </div>
                     `;
                 });
 
                 if (!isAllView) {
-                    eventsHtml += `<div class="flex items-center justify-center bg-white border-b border-slate-200 py-3 px-6">
-                        <button onclick="focusRightPanel('관광지')" class="w-full bg-slate-50 text-slate-500 py-2.5 px-2 rounded-lg font-bold text-sm transition border border-dashed border-slate-300 hover:bg-slate-100 flex items-center justify-center gap-2"><i class="fa-solid fa-hand-point-right"></i> 우측 장소 모음에서 일정을 계속 추가하세요</button>
+                    eventsHtml += `<div class="px-3 sm:px-4 py-2 bg-white">
+                        <button onclick="openTimelineAddModal('place', ${dayIdx})" class="w-full bg-slate-50 text-slate-600 py-3 px-2 rounded-xl font-bold text-sm sm:text-base transition border border-dashed border-slate-300 flex items-center justify-center gap-1.5 shadow-sm"><i class="fa-solid fa-plus"></i> <span class="tracking-tight">일정 추가</span></button>
                     </div>`;
                 }
             }
 
-            let bottomButtonsHtml = isAllView ? '' : `<div class="p-6 flex gap-3 w-full bg-white mt-auto border-t border-slate-200">
-                <button onclick="manualSaveData()" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white py-3 px-2 rounded-lg font-bold text-sm transition shadow-sm flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-floppy-disk"></i> 저장
-                </button>
-                <button onclick="openDayMapModal(${dayIdx})" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center gap-2 py-3 px-2 rounded-lg text-sm font-bold shadow-md transition">
-                    <i class="fa-solid fa-map-location-dot"></i> 전체 지도
-                </button>
-            </div>`;
+            let dayCompanionsHtml = currentDayObj.companions ? `<div class="text-[11px] sm:text-xs font-bold text-cyan-800 mt-0.5 truncate"><i class="fa-solid fa-users mr-1"></i>${currentDayObj.companions}</div>` : '';
+            
+            let dayTitleHtml = `
+                <div class="flex-1 min-w-0 pr-2">
+                    <div class="flex items-baseline gap-2 flex-wrap">
+                        <span class="font-extrabold text-xl sm:text-2xl text-cyan-900 tracking-tight">Day ${currentDayObj.dayNum}</span>
+                        <span class="text-sm sm:text-base text-cyan-700 font-medium">${currentDayObj.date}</span>
+                    </div>
+                    ${dayCompanionsHtml}
+                </div>
+            `;
 
-            let dayCompanionsHtml = currentDayObj.companions ? `<div class="text-xs font-bold text-cyan-800 mt-2 bg-white/60 inline-block px-2 py-1 rounded"><i class="fa-solid fa-users mr-1"></i>동행: ${currentDayObj.companions}</div>` : '';
+            let headerWrapperClass = isAllView ? 
+                "bg-cyan-50/95 border-b border-cyan-200 px-4 sm:px-6 py-3 shadow-sm flex justify-between items-center transition-all" 
+                : 
+                "day-header-sticky sticky top-0 bg-cyan-50/95 backdrop-blur-md border-b border-cyan-200 px-4 sm:px-6 py-3 z-[30] shadow-sm flex justify-between items-center transition-all";
+            
+            let actionButtonsHtml = `
+                <button onclick="openExpenseModal()" class="bg-emerald-600 text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-[14px] font-bold shadow-sm flex items-center justify-center transition hover:bg-emerald-700" title="경비"><i class="fa-solid fa-won-sign sm:mr-1.5"></i><span class="hidden sm:inline">경비</span></button>
+                ${isAllView ? '' : `<button onclick="manualSaveData()" class="bg-slate-800 text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-[14px] font-bold shadow-sm flex items-center justify-center transition hover:bg-slate-900" title="저장"><i class="fa-solid fa-floppy-disk sm:mr-1.5"></i><span class="hidden sm:inline">저장</span></button>`}
+                <button onclick="openDayMapModal(${dayIdx})" class="bg-emerald-500 text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-[14px] font-bold shadow-sm flex items-center justify-center transition hover:bg-emerald-600" title="지도보기"><i class="fa-solid fa-map-location-dot sm:mr-1.5"></i><span class="hidden sm:inline">지도</span></button>
+                ${isAllView ? '' : `<button onclick="openTimelineAddModal('place', ${dayIdx})" class="bg-cyan-600 text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-[14px] font-bold shadow-sm flex items-center justify-center transition hover:bg-cyan-700" title="추가"><i class="fa-solid fa-plus sm:mr-1.5"></i><span class="hidden sm:inline">추가</span></button>`}
+            `;
+
+            let topActionHtml = `<div class="flex items-center gap-1.5 sm:gap-2 shrink-0">${actionButtonsHtml}</div>`;
+
+            let topSectionHtml = `
+                <div class="${headerWrapperClass}">
+                    ${dayTitleHtml}
+                    ${topActionHtml}
+                </div>
+            `;
 
             return `
-                <div class="${isAllView ? 'border-b-[8px] border-slate-100' : 'h-full flex flex-col'} bg-white">
-                    <div class="bg-cyan-50/50 flex justify-between items-start pb-4 border-b border-cyan-100/80 px-6 pt-5 shrink-0">
-                        <div>
-                            <div class="flex items-end gap-3">
-                                <span class="font-extrabold text-3xl text-cyan-900 tracking-tight">Day ${currentDayObj.dayNum}</span>
-                                <span class="text-sm text-cyan-700 font-medium mb-1">${currentDayObj.date}</span>
-                            </div>
-                            ${dayCompanionsHtml}
-                        </div>
-                        ${isAllView ? `<button onclick="openDayMapModal(${dayIdx})" class="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 text-xs font-bold px-3 py-1.5 rounded transition flex items-center gap-1 mt-1"><i class="fa-solid fa-map"></i> 지도</button>` : ''}
-                    </div>
-                    <div class="${isAllView ? '' : 'flex-1 overflow-y-auto hide-scrollbar'} space-y-0 px-0 bg-white">${eventsHtml}</div>
-                    ${bottomButtonsHtml}
+                <div class="${isAllView ? 'bg-cyan-50/30 border-y border-cyan-100/60 shadow-sm overflow-hidden mb-6' : 'bg-transparent pb-6'}">
+                    ${topSectionHtml}
+                    <div class="space-y-0 px-0">${eventsHtml}</div>
                 </div>
             `;
         }
 
         function renderPlanner() {
             const days = tripData.days || [];
-            
-            let tabsHtml = `<button onclick="setActiveDay(-1)" class="w-full text-left px-4 py-3 rounded-lg text-sm font-bold transition whitespace-nowrap border ${tripData.activeDay === -1 ? 'bg-cyan-600 border-cyan-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-100'}">전체일정 모아보기</button>`;
+            let tabsHtml = `<button onclick="setActiveDay(-1)" class="flex-1 min-w-[72px] px-2 py-2.5 rounded-lg text-sm sm:text-base font-bold transition whitespace-nowrap border ${tripData.activeDay === -1 ? 'bg-cyan-600 border-cyan-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50'}">전체일정</button>`;
             
             tabsHtml += days.map((d, idx) => `
-                <button onclick="setActiveDay(${idx})" class="w-full text-left px-4 py-3 rounded-lg text-sm font-bold transition whitespace-nowrap border ${idx === tripData.activeDay ? 'bg-cyan-50 border-cyan-300 text-cyan-800 shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-100'}">
-                    Day ${d.dayNum} <span class="text-[10px] font-normal block text-slate-400 mt-0.5">${d.date.split(' ')[0]}</span>
+                <button onclick="setActiveDay(${idx})" class="flex-1 min-w-[64px] px-2 py-2.5 rounded-lg text-sm sm:text-base font-bold transition whitespace-nowrap border ${idx === tripData.activeDay ? 'bg-cyan-50 border-cyan-400 text-cyan-800 shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50'}">
+                    Day ${d.dayNum}
                 </button>
             `).join('');
 
-            document.getElementById('left-sidebar').innerHTML = tabsHtml;
+            document.getElementById('day-tabs').innerHTML = tabsHtml;
 
             const contentContainer = document.getElementById('day-content');
             if (tripData.activeDay === -1) {
@@ -754,39 +1178,78 @@
                     contentContainer.innerHTML = renderDayContent(tripData.activeDay, false);
                 }
             }
+            setTimeout(updateStickyPositions, 50);
         }
         
         function updateEventMemo(dayIdx, evtIdx, val) { tripData.days[dayIdx].events[evtIdx].memo = val; saveDataToLocalStorage(); }
 
         function openDayMapModal(dayIdx) {
             const dayObj = tripData.days[dayIdx];
-            if (!dayObj || !dayObj.events || dayObj.events.length === 0) { alert('지도에 표시할 일정이 없습니다.'); return; }
+            if (!dayObj || !dayObj.events || dayObj.events.length === 0) { alert('지도에 표시할 일정이 없습니다. 장소를 먼저 추가해주세요.'); return; }
             const firstEvt = dayObj.events[0];
             const hasHotel = firstEvt && (firstEvt.type === 'hotel' || firstEvt.group === '호텔');
             const routeEvents = hasHotel ? dayObj.events.slice(1) : dayObj.events;
             let validEvents = routeEvents.filter(e => e.lat && e.lng);
-            if (validEvents.length === 0) { alert('좌표가 있는 장소가 없습니다.'); return; }
+            if (validEvents.length === 0) { alert('지도에 표시할 위치(위도/경도)가 등록된 장소가 없습니다.'); return; }
 
-            document.getElementById('map-modal-title').innerHTML = `<i class="fa-solid fa-map-location-dot mr-2"></i>Day ${dayObj.dayNum} 방문 장소 지도`;
+            document.getElementById('map-modal-title').innerHTML = `<i class="fa-solid fa-map-location-dot mr-2"></i>Day ${dayObj.dayNum} 전체위치 (${validEvents.length}개소)`;
             document.getElementById('mapModal').classList.remove('hidden');
 
             setTimeout(() => {
                 if (leafletMap) { leafletMap.remove(); leafletMap = null; }
-                leafletMap = L.map('dayMapContainer').setView([26.3, 127.8], 10);
-                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 18, attribution: '&copy; OpenStreetMap' }).addTo(leafletMap);
+leafletMap = L.map('dayMapContainer', { zoomControl: false }).setView([26.3, 127.8], 10);
+
+                L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', { subdomains: ['0', '1', '2', '3'], maxZoom: 20, attribution: '&copy; Google Maps' }).addTo(leafletMap);
                 let bounds = [];
 
                 validEvents.forEach((evt, idx) => {
                     let lat = parseFloat(evt.lat); let lng = parseFloat(evt.lng); bounds.push([lat, lng]);
-                    let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="custom-map-marker"><i class="fa-solid fa-location-dot"></i></div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
-                    let popupContent = `<div style="font-family: sans-serif; padding: 4px; min-width: 150px;">
-                        <span style="background: #0891b2; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">방문 장소</span>
+                    let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="custom-map-marker">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
+                    let popupContent = `<div style="padding: 4px; min-width: 150px;">
+                        <span style="background: #0891b2; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소</span>
                         <h4 style="font-weight: bold; font-size: 14px; margin: 6px 0 4px 0; color: #0f172a;">${evt.name}</h4>
-                        <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">${evt.desc || ''}</p>
+                        <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">${evt.desc || '설명 없음'}</p>
+                        <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="display: block; background: #2563eb; color: white; text-align: center; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-decoration: none;">구글 맵 보기</a>
                     </div>`;
                     L.marker([lat, lng], { icon: numberIcon }).addTo(leafletMap).bindPopup(popupContent);
                 });
                 if (bounds.length > 0) leafletMap.fitBounds(bounds, { padding: [50, 50] });
+            }, 100);
+        }
+
+        function openCategoryMapModal() {
+            const places = placesData[currentRegion] || [];
+            const filteredPlaces = places.filter(p => p.group === currentCategory);
+            
+            if (filteredPlaces.length === 0) { alert('지도에 표시할 장소가 없습니다.'); return; }
+
+            const regionName = currentRegion === 'south' ? '남부' : (currentRegion === 'central' ? '중부' : '북부');
+            document.getElementById('map-modal-title').innerHTML = `<i class="fa-solid fa-map-location-dot mr-2"></i>[${regionName}] ${currentCategory} 장소 보기`;
+            document.getElementById('mapModal').classList.remove('hidden');
+
+            setTimeout(() => {
+                if (leafletMap) { leafletMap.remove(); leafletMap = null; }
+
+leafletMap = L.map('dayMapContainer', { zoomControl: false });
+                L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', { subdomains: ['0', '1', '2', '3'], maxZoom: 20, attribution: '&copy; Google Maps' }).addTo(leafletMap);
+                let bounds = [];
+
+                filteredPlaces.forEach((evt, idx) => {
+                    let lat = parseFloat(evt.lat); let lng = parseFloat(evt.lng);
+                    if(isNaN(lat) || isNaN(lng)) return;
+                    bounds.push([lat, lng]);
+                    let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="custom-map-marker" style="background:#10b981;">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
+                    let popupContent = `<div style="padding: 4px; min-width: 150px;">
+                        <span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소</span>
+                        <h4 style="font-weight: bold; font-size: 14px; margin: 6px 0 4px 0; color: #0f172a;">${evt.name}</h4>
+                        <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">${evt.desc || '설명 없음'}</p>
+                        <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="display: block; background: #2563eb; color: white; text-align: center; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-decoration: none;">구글 맵 보기</a>
+                    </div>`;
+                    L.marker([lat, lng], { icon: numberIcon }).addTo(leafletMap).bindPopup(popupContent);
+                });
+                
+                if (bounds.length > 0) leafletMap.fitBounds(bounds, { padding: [50, 50] });
+                else leafletMap.setView([26.3, 127.8], 10);
             }, 100);
         }
 
@@ -800,59 +1263,66 @@
                     let isHotel = (evt.type === 'hotel' || evt.group === '호텔');
                     let icon = isHotel ? '🏨 숙소' : '📍 ' + (evt.category || '명소');
                     let trans = evt.transport ? `<span style="color: #0891b2; font-weight: bold; font-size: 13px; margin-left: 8px;">🚗 ${evt.transport}</span>` : '';
-                    let memoHtml = evt.memo ? `<div style="font-size: 14px; color: #475569; margin-top: 6px; background: #f1f5f9; padding: 6px 10px; border-radius: 6px;">📝 ${evt.memo}</div>` : '';
+                    let memoHtml = evt.memo ? `<div style="font-size: 13px; color: #475569; margin-top: 6px; background: #f1f5f9; padding: 6px 10px; border-radius: 6px;">📝 ${evt.memo}</div>` : '';
 
                     eventsHtml += `
                     <div style="display: flex; flex-direction: column; background: white; border: 1px solid #e2e8f0; border-radius: 12px; margin-bottom: 12px; padding: 12px 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                         <div style="display: flex; align-items: center;">
-                            <div style="background: ${isHotel ? '#4f46e5' : '#0891b2'}; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 14px; margin-right: 14px; flex-shrink: 0;">${isHotel ? 'H' : '📍'}</div>
+                            <div style="background: ${isHotel ? '#4f46e5' : '#0891b2'}; color: white; width: 28px; height: 28px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 14px; margin-right: 14px; flex-shrink: 0;">${isHotel ? 'H' : i+1}</div>
                             <div style="flex: 1;">
                                 <div style="font-size: 12px; color: ${isHotel ? '#4f46e5' : '#64748b'}; font-weight: bold; margin-bottom: 4px;">${icon}${trans}</div>
-                                <div style="font-size: 16px; color: #0f172a; font-weight: bold; line-height: 1.4;">${evt.name}</div>
+                                <div style="font-size: 19px; color: #0f172a; font-weight: bold; line-height: 1.4;">${evt.name}</div>
                             </div>
                         </div>
                         ${memoHtml}
                     </div>`;
                 });
             }
+            
             let dayCompsHtml = day.companions ? `<div style="font-size: 14px; font-weight: bold; color: #0891b2; margin-top: 6px; background: white; display: inline-block; padding: 4px 10px; border-radius: 20px;">👥 동행자: ${day.companions}</div>` : '';
-            return `<div style="background: #f8fafc; padding: 24px; font-family: -apple-system, sans-serif;">
-                <div style="background: linear-gradient(to right, #0891b2, #1d4ed8); border-radius: 16px; padding: 20px; color: white; margin-bottom: 20px;">
+
+            return `<div style="background: #f8fafc; padding: 24px; font-family: 'Pretendard Variable', Pretendard, -apple-system, BlinkMacSystemFont, sans-serif;">
+                <div style="background: linear-gradient(to right, #0891b2, #1d4ed8); border-radius: 16px; padding: 20px; color: white; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
                     <div style="font-size: 28px; font-weight: 800; margin-bottom: 4px;">Day ${day.dayNum}</div>
-                    <div style="font-size: 16px; font-weight: 500;">${day.date}</div>
+                    <div style="font-size: 16px; font-weight: 500; opacity: 0.9;">${day.date}</div>
                     ${dayCompsHtml}
                 </div>
-                <div style="background: white; border-radius: 16px; padding: 16px;">${eventsHtml}</div>
+                <div style="background: white; border-radius: 16px; padding: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #f1f5f9;">${eventsHtml}</div>
+                <div style="text-align: center; margin-top: 16px; color: #94a3b8; font-size: 12px; font-weight: bold;">오키나와 완벽 맞춤형 여행 플래너</div>
             </div>`;
         }
 
         async function shareAllDaysAsImages() {
             if (tripData.days.length === 0) { alert('공유할 일정이 없습니다.'); return; }
             let loader = document.createElement('div');
-            loader.innerHTML = '<div class="flex flex-col items-center"><i class="fa-solid fa-spinner fa-spin text-4xl text-white mb-3"></i><p class="text-white font-bold text-sm">이미지 생성 중...</p></div>';
+            loader.id = 'share-loader';
+            loader.innerHTML = '<div class="flex flex-col items-center"><i class="fa-solid fa-spinner fa-spin text-4xl text-white mb-3"></i><p class="text-white font-bold text-sm mt-2">일정 이미지를 생성 중입니다...</p><p class="text-white/70 text-[11px] mt-1">잠시만 기다려주세요 (약 3~5초 소요)</p></div>';
             loader.className = 'fixed inset-0 z-[100] bg-slate-900/80 flex items-center justify-center';
             document.body.appendChild(loader);
 
             try {
                 let captureArea = document.createElement('div');
-                captureArea.style.position = 'absolute'; captureArea.style.top = '-9999px'; captureArea.style.width = '400px'; 
+                captureArea.style.position = 'absolute'; captureArea.style.top = '-9999px'; captureArea.style.left = '0'; captureArea.style.width = '400px'; 
                 document.body.appendChild(captureArea);
                 let imageFiles = [];
                 for (let i = 0; i < tripData.days.length; i++) {
                     let day = tripData.days[i];
-                    let container = document.createElement('div');
-                    container.innerHTML = generateDayHtmlForCapture(day);
-                    captureArea.appendChild(container);
+                    let dayContainer = document.createElement('div');
+                    dayContainer.innerHTML = generateDayHtmlForCapture(day);
+                    captureArea.appendChild(dayContainer);
                     await new Promise(r => setTimeout(r, 200)); 
-                    let canvas = await html2canvas(container, { scale: 2, useCORS: true, backgroundColor: '#f8fafc' });
+                    let canvas = await html2canvas(dayContainer, { scale: 2, useCORS: true, backgroundColor: '#f8fafc' });
                     let blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
-                    imageFiles.push(new File([blob], `Okinawa_Day${day.dayNum}.png`, { type: 'image/png' }));
+                    let file = new File([blob], `Okinawa_Day${day.dayNum}.png`, { type: 'image/png' });
+                    imageFiles.push(file);
                     captureArea.innerHTML = '';
                 }
                 document.body.removeChild(captureArea);
-                if (navigator.canShare && navigator.canShare({ files: imageFiles })) { await navigator.share({ title: '오키나와 일정', files: imageFiles }); } 
-                else {
-                    alert('각 이미지를 다운로드합니다.');
+
+                if (navigator.canShare && navigator.canShare({ files: imageFiles })) {
+                    await navigator.share({ title: '오키나와 여행 일정', files: imageFiles });
+                } else {
+                    alert('현재 브라우저에서는 여러 장 동시 공유를 지원하지 않아, 각 일정 이미지를 기기에 다운로드합니다.');
                     for (let file of imageFiles) {
                         let url = URL.createObjectURL(file);
                         let a = document.createElement('a'); a.href = url; a.download = file.name;
@@ -860,14 +1330,11 @@
                         await new Promise(r => setTimeout(r, 400));
                     }
                 }
-            } catch (error) { alert('오류가 발생했습니다.'); } finally { document.body.removeChild(loader); }
+            } catch (error) { console.error(error); alert('이미지 생성 또는 공유 중 오류가 발생했습니다.'); } 
+            finally { let loaderEl = document.getElementById('share-loader'); if (loaderEl) document.body.removeChild(loaderEl); }
         }
 
-        function setActiveDay(idx) { 
-            tripData.activeDay = idx; 
-            renderPlanner(); 
-            document.getElementById('day-content').scrollTop = 0;
-        }
+        function setActiveDay(idx) { tripData.activeDay = idx; renderPlanner(); }
         function moveEvent(dayIdx, evtIdx, dir) {
             const evts = tripData.days[dayIdx].events; const tgt = evtIdx + dir;
             if (tgt < 0 || tgt >= evts.length) return;
@@ -877,13 +1344,27 @@
         function removeEvent(dayIdx, evtIdx) { tripData.days[dayIdx].events.splice(evtIdx, 1); renderPlanner(); saveDataToLocalStorage(); }
         function updateEventTransport(dayIdx, evtIdx, val) { tripData.days[dayIdx].events[evtIdx].transport = val; renderPlanner(); saveDataToLocalStorage(); }
 
+        function openTimelineAddModal(mode, dayIdx) {
+            addMode = mode;
+            targetAddDayIdx = dayIdx; 
+            document.getElementById('modal-title').innerHTML = mode === 'hotel' ? '<i class="fa-solid fa-bed mr-2"></i>숙소로 등록할 호텔 선택' : `<i class="fa-solid fa-calendar-plus mr-2"></i>Day ${tripData.days[dayIdx].dayNum}일정 추가`;
+            switchCategory(mode === 'hotel' ? '호텔' : '관광지');
+            document.getElementById('timelineAddModal').classList.remove('hidden'); renderPlaces();
+        }
+        function closeTimelineAddModal() { document.getElementById('timelineAddModal').classList.add('hidden'); }
+        
         function openAddModal() {
             document.getElementById('editingPlaceId').value = '';
-            document.getElementById('custom-modal-title').innerHTML = '<i class="fa-solid fa-plus-circle mr-2"></i>새로운 장소 직접 등록';
+            document.getElementById('custom-modal-title').innerHTML = '<i class="fa-solid fa-plus-circle mr-2"></i>새로운 장소 / 호텔 직접 등록';
             document.getElementById('customAddBtn').innerText = '등록하기';
             document.getElementById('modal-header-bg').className = 'bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-4 flex justify-between items-center text-white';
-            document.getElementById('customPlaceName').value = ''; document.getElementById('customLat').value = ''; document.getElementById('customLng').value = ''; document.getElementById('customPlaceDesc').value = '';
-            document.getElementById('addPlaceModal').classList.remove('hidden'); document.getElementById('customPlaceName').focus();
+            document.getElementById('customPlaceName').value = ''; 
+            document.getElementById('customLat').value = ''; 
+            document.getElementById('customLng').value = ''; 
+            document.getElementById('customPlaceDesc').value = '';
+            if (addMode === 'hotel') document.getElementById('customPlaceGroup').value = '호텔';
+            document.getElementById('addPlaceModal').classList.remove('hidden');
+            document.getElementById('customPlaceName').focus();
         }
 
         function openEditPlaceModal(region, placeId) {
@@ -893,38 +1374,720 @@
             document.getElementById('custom-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square mr-2"></i>장소 정보 수정';
             document.getElementById('customAddBtn').innerText = '수정 완료';
             document.getElementById('modal-header-bg').className = 'bg-gradient-to-r from-amber-500 to-orange-600 px-5 py-4 flex justify-between items-center text-white';
-            document.getElementById('customPlaceName').value = place.name; document.getElementById('customPlaceRegion').value = region;
-            document.getElementById('customPlaceGroup').value = place.group || '관광지'; document.getElementById('customPlaceDesc').value = place.desc || '';
-            document.getElementById('customLat').value = place.lat || ''; document.getElementById('customLng').value = place.lng || '';
-            document.getElementById('addPlaceModal').classList.remove('hidden'); document.getElementById('customPlaceName').focus();
+            document.getElementById('customPlaceName').value = place.name;
+            document.getElementById('customPlaceRegion').value = region;
+            document.getElementById('customPlaceGroup').value = place.group || '관광지';
+            document.getElementById('customPlaceDesc').value = place.desc || '';
+            document.getElementById('customLat').value = place.lat || '';
+            document.getElementById('customLng').value = place.lng || '';
+            document.getElementById('addPlaceModal').classList.remove('hidden');
+            document.getElementById('customPlaceName').focus();
         }
 
         function closeAddModal() { document.getElementById('addPlaceModal').classList.add('hidden'); }
 
         function registerCustomPlace() {
             const editingId = document.getElementById('editingPlaceId').value;
-            const name = document.getElementById('customPlaceName').value.trim(); const region = document.getElementById('customPlaceRegion').value;
-            const group = document.getElementById('customPlaceGroup').value; const descVal = document.getElementById('customPlaceDesc').value.trim();
-            let latVal = document.getElementById('customLat').value.trim(); let lngVal = document.getElementById('customLng').value.trim();
+            const name = document.getElementById('customPlaceName').value.trim(); 
+            const region = document.getElementById('customPlaceRegion').value;
+            const group = document.getElementById('customPlaceGroup').value; 
+            const descVal = document.getElementById('customPlaceDesc').value.trim();
+            let latVal = document.getElementById('customLat').value.trim(); 
+            let lngVal = document.getElementById('customLng').value.trim();
             
             if (!name) { alert('장소명을 입력해주세요.'); return; }
-            let desc = descVal || '맞춤형 장소';
-            const rCoords = { south: { lat: 26.21, lng: 127.68 }, central: { lat: 26.35, lng: 127.78 }, north: { lat: 26.65, lng: 127.90 } };
+            let desc = descVal || '직접 등록한 맞춤형 장소입니다.';
+            const regionCoords = { south: { lat: 26.21, lng: 127.68 }, central: { lat: 26.35, lng: 127.78 }, north: { lat: 26.65, lng: 127.90 } };
             
             let latNum = parseFloat(latVal); let lngNum = parseFloat(lngVal);
-            latNum = isNaN(latNum) ? rCoords[region].lat : latNum; lngNum = isNaN(lngNum) ? rCoords[region].lng : lngNum;
+            latNum = isNaN(latNum) ? regionCoords[region].lat : latNum;
+            lngNum = isNaN(lngNum) ? regionCoords[region].lng : lngNum;
 
             if (editingId) {
-                for (let reg in placesData) { let idx = placesData[reg].findIndex(p => p.id === editingId); if (idx !== -1) { placesData[reg].splice(idx, 1); break; } }
-                if (!placesData[region]) placesData[region] = [];
-                placesData[region].push({ id: editingId, group: group, name: name, category: group === '호텔' ? '숙소' : '명소', desc: desc, lat: latNum, lng: lngNum });
+                for (let reg in placesData) {
+                    let idx = placesData[reg].findIndex(p => p.id === editingId);
+                    if (idx !== -1) {
+                        placesData[reg][idx].name = name;
+                        placesData[reg][idx].group = group;
+                        placesData[reg][idx].desc = desc;
+                        placesData[reg][idx].lat = latNum;
+                        placesData[reg][idx].lng = lngNum;
+                        placesData[reg][idx].category = group === '호텔' ? '호텔/숙소' : '구글 맵 명소';
+
+                        if (reg !== region) {
+                            let movedItem = placesData[reg].splice(idx, 1)[0];
+                            if(!placesData[region]) placesData[region] = [];
+                            placesData[region].push(movedItem);
+                        }
+                        break; 
+                    }
+                }
                 switchRegion(region); switchCategory(group); renderPlaces(); renderPlanner(); saveDataToLocalStorage(); closeAddModal();
+                alert(`[${name}] 장소 정보가 수정되었습니다.`);
             } else {
-                const newPlace = { id: 'custom-' + Date.now(), group: group, name: name, category: group === '호텔' ? '숙소' : '명소', desc: desc, lat: latNum, lng: lngNum };
-                if(!placesData[region]) placesData[region] = []; placesData[region].push(newPlace);
+                const newPlace = { id: 'custom-' + Date.now(), group: group, name: name, category: group === '호텔' ? '호텔/숙소' : '구글 맵 명소', desc: desc, lat: latNum, lng: lngNum };
+                if(!placesData[region]) placesData[region] = []; 
+                placesData[region].push(newPlace);
                 switchRegion(region); switchCategory(group); renderPlaces(); saveDataToLocalStorage(); closeAddModal();
-                alert(`[${name}] 장소가 우측 목록에 등록되었습니다.\n목록에서 '추가' 버튼을 눌러 일정표에 넣으세요.`);
+                alert(`[${name}] 장소가 목록에 등록되었습니다.`);
             }
+        }
+
+        // --- 경비 정산 및 송금 계산기 연동 로직 (개인별 / 부부별 정산 지원) ---
+        function openExpenseModal() {
+            document.getElementById('expenseModal').classList.remove('hidden');
+            initExpenseApp();
+        }
+
+        function closeExpenseModal() {
+            document.getElementById('expenseModal').classList.add('hidden');
+        }
+
+        function initExpenseApp() {
+            cleanInvalidCouples();
+            updateSettlementModeUI();
+            renderParticipants();
+            renderCoupleSetup();
+            renderExpenseParticipantsCheckboxes();
+            renderExpenses();
+            updatePayerDropdown();
+            calculateSettlement();
+        }
+
+        function cleanInvalidCouples() {
+            const used = new Set();
+            couples = couples.filter(c => {
+                if (!participants.includes(c.member1) || !participants.includes(c.member2)) return false;
+                if (c.member1 === c.member2) return false;
+                if (used.has(c.member1) || used.has(c.member2)) return false;
+                used.add(c.member1);
+                used.add(c.member2);
+                if (c.rep !== c.member1 && c.rep !== c.member2) c.rep = c.member1;
+                return true;
+            });
+        }
+
+        function setSettlementMode(mode) {
+            settlementMode = mode;
+            updateSettlementModeUI();
+            renderCoupleSetup();
+            renderExpenseParticipantsCheckboxes();
+            renderExpenses();
+            calculateSettlement();
+            autoSaveExpenseAppData();
+        }
+
+        function updateSettlementModeUI() {
+            const indBtn = document.getElementById('modeIndividualBtn');
+            const cplBtn = document.getElementById('modeCoupleBtn');
+            const setupSec = document.getElementById('coupleSetupSection');
+            if (!indBtn || !cplBtn || !setupSec) return;
+
+            if (settlementMode === 'couple') {
+                indBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-slate-200';
+                cplBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow-sm';
+                setupSec.classList.remove('hidden');
+            } else {
+                indBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow-sm';
+                cplBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-slate-200';
+                setupSec.classList.add('hidden');
+            }
+        }
+
+        function getAssignedCoupleMembers() {
+            const set = new Set();
+            couples.forEach(c => {
+                set.add(c.member1);
+                set.add(c.member2);
+            });
+            return set;
+        }
+
+        function renderCoupleSetup() {
+            const m1Select = document.getElementById('coupleMember1');
+            const m2Select = document.getElementById('coupleMember2');
+            const creatorBox = document.getElementById('couplePairCreator');
+            const listContainer = document.getElementById('coupleListContainer');
+            if (!m1Select || !m2Select || !listContainer) return;
+
+            cleanInvalidCouples();
+            const assigned = getAssignedCoupleMembers();
+            const unassigned = participants.filter(p => !assigned.has(p));
+
+            if (unassigned.length >= 2) {
+                creatorBox.classList.remove('hidden');
+                m1Select.innerHTML = unassigned.map((p, idx) => `<option value="${p}" ${idx === 0 ? 'selected' : ''}>${p}</option>`).join('');
+                m2Select.innerHTML = unassigned.map((p, idx) => `<option value="${p}" ${idx === 1 ? 'selected' : ''}>${p}</option>`).join('');
+            } else {
+                creatorBox.classList.add('hidden');
+            }
+
+            let html = '';
+            if (couples.length === 0) {
+                html += `<p class="text-[11px] text-slate-500 text-center py-1">아직 묶인 부부가 없습니다. 위에서 두 명을 선택해 부부로 묶어주세요.</p>`;
+            } else {
+                html += couples.map((c, idx) => {
+                    const isM1Rep = c.rep === c.member1;
+                    const isM2Rep = c.rep === c.member2;
+                    return `
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
+                                <span class="text-[10px] font-bold text-slate-400 mr-0.5">부부${idx + 1}</span>
+                                <button type="button" onclick="setCoupleRep(${c.id}, '${c.member1}')"
+                                    class="px-2 py-0.5 rounded-md text-xs font-semibold border transition flex items-center gap-1 ${isM1Rep ? 'bg-indigo-500/20 border-indigo-500 text-indigo-200' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'}"
+                                    title="클릭하여 대표자로 지정">
+                                    ${isM1Rep ? '<span>👑</span>' : ''}${c.member1}
+                                </button>
+                                <span class="text-slate-600 text-xs">&amp;</span>
+                                <button type="button" onclick="setCoupleRep(${c.id}, '${c.member2}')"
+                                    class="px-2 py-0.5 rounded-md text-xs font-semibold border transition flex items-center gap-1 ${isM2Rep ? 'bg-indigo-500/20 border-indigo-500 text-indigo-200' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'}"
+                                    title="클릭하여 대표자로 지정">
+                                    ${isM2Rep ? '<span>👑</span>' : ''}${c.member2}
+                                </button>
+                            </div>
+                            <button type="button" onclick="removeCouplePair(${c.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1.5 py-0.5 shrink-0" title="부부 묶기 해제">
+                                해제
+                            </button>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            if (unassigned.length > 0) {
+                html += `<div class="text-[11px] text-slate-400 pt-1 px-1">미지정(개인 단위 정산): <span class="text-slate-300 font-medium">${unassigned.join(', ')}</span></div>`;
+            }
+
+            listContainer.innerHTML = html;
+        }
+
+        function addCouplePair() {
+            const m1 = document.getElementById('coupleMember1').value;
+            const m2 = document.getElementById('coupleMember2').value;
+            if (!m1 || !m2 || m1 === m2) {
+                alert('서로 다른 두 명의 참가자를 선택해주세요.');
+                return;
+            }
+            couples.push({
+                id: Date.now(),
+                member1: m1,
+                member2: m2,
+                rep: m1
+            });
+            renderCoupleSetup();
+            renderExpenseParticipantsCheckboxes();
+            renderExpenses();
+            calculateSettlement();
+            autoSaveExpenseAppData();
+        }
+
+        function setCoupleRep(coupleId, memberName) {
+            const target = couples.find(c => c.id === coupleId);
+            if (target && (target.member1 === memberName || target.member2 === memberName)) {
+                target.rep = memberName;
+                renderCoupleSetup();
+                renderExpenses();
+                calculateSettlement();
+                autoSaveExpenseAppData();
+            }
+        }
+
+        function removeCouplePair(coupleId) {
+            couples = couples.filter(c => c.id !== coupleId);
+            renderCoupleSetup();
+            renderExpenseParticipantsCheckboxes();
+            renderExpenses();
+            calculateSettlement();
+            autoSaveExpenseAppData();
+        }
+
+        function getSettlementEntities() {
+            if (settlementMode !== 'couple') {
+                return participants.map(p => ({
+                    id: p,
+                    label: p,
+                    subLabel: '',
+                    fullTitle: p,
+                    rep: p,
+                    members: [p],
+                    isCouple: false
+                }));
+            }
+
+            cleanInvalidCouples();
+            const entities = [];
+            const assigned = new Set();
+
+            couples.forEach(c => {
+                assigned.add(c.member1);
+                assigned.add(c.member2);
+                const rep = c.rep || c.member1;
+                entities.push({
+                    id: 'couple_' + c.id,
+                    label: rep,
+                    subLabel: `${c.member1} · ${c.member2} 부부 대표`,
+                    fullTitle: `${rep} (${c.member1}·${c.member2} 부부)`,
+                    rep: rep,
+                    members: [c.member1, c.member2],
+                    isCouple: true
+                });
+            });
+
+            participants.forEach(p => {
+                if (!assigned.has(p)) {
+                    entities.push({
+                        id: 'solo_' + p,
+                        label: p,
+                        subLabel: '개인 정산',
+                        fullTitle: p,
+                        rep: p,
+                        members: [p],
+                        isCouple: false
+                    });
+                }
+            });
+
+            return entities;
+        }
+
+        function findEntityByPerson(personName, entities) {
+            return entities.find(ent => ent.members.includes(personName));
+        }
+
+        function gcd(a, b) {
+            return b === 0 ? a : gcd(b, a % b);
+        }
+
+        function toggleExpenseList() {
+            const container = document.getElementById('expenseListContainer');
+            container.classList.toggle('hidden');
+        }
+
+        function toggleSummaryExpenseList() {
+            const container = document.getElementById('summaryExpenseListContainer');
+            container.classList.toggle('hidden');
+        }
+
+        function updateTripTitle() {
+            const tripName = document.getElementById('tripTitleInput').value.trim();
+            const headerTitle = document.getElementById('expenseHeaderTitle');
+            const summaryMainTitle = document.getElementById('summaryMainTitle');
+
+            if (tripName) {
+                headerTitle.innerText = `${tripName} 정산 & 송금 계산기`;
+                summaryMainTitle.innerText = `${tripName} 정산 및 송금 요약`;
+            } else {
+                headerTitle.innerText = `여행 정산 & 송금 계산기`;
+                summaryMainTitle.innerText = `여행 정산 및 송금 요약`;
+            }
+            autoSaveExpenseAppData();
+        }
+
+        function renderParticipants() {
+            const container = document.getElementById('participantTags');
+            const countBadge = document.getElementById('participantCount');
+            if(!container) return;
+            countBadge.innerText = `${participants.length}명`;
+            
+            container.innerHTML = participants.map(p => `
+                <span class="inline-flex items-center gap-1.5 bg-slate-950 border border-slate-800 text-slate-300 px-2.5 py-1 rounded-lg text-xs">
+                    ${p}
+                    ${participants.length > 1 ? `<button onclick="removeParticipant('${p}')" class="text-slate-500 hover:text-rose-400 font-bold">&times;</button>` : ''}
+                </span>
+            `).join('');
+            
+            updatePayerDropdown();
+            renderCoupleSetup();
+            renderExpenseParticipantsCheckboxes();
+        }
+
+        function addParticipant() {
+            const input = document.getElementById('newParticipantName');
+            const name = input.value.trim();
+            if (!name) return;
+            if (participants.includes(name)) {
+                alert('이미 존재하는 참여자입니다.');
+                return;
+            }
+            participants.push(name);
+            input.value = '';
+            renderParticipants();
+            autoSaveExpenseAppData();
+        }
+
+        function removeParticipant(name) {
+            participants = participants.filter(p => p !== name);
+            couples = couples.filter(c => c.member1 !== name && c.member2 !== name);
+            expenses.forEach(exp => {
+                exp.targets = exp.targets.filter(t => t !== name);
+            });
+            renderParticipants();
+            renderExpenses();
+            calculateSettlement();
+            autoSaveExpenseAppData();
+        }
+
+        function updatePayerDropdown() {
+            const select = document.getElementById('expensePayer');
+            if(!select) return;
+            const prevVal = select.value;
+            select.innerHTML = participants.map(p => `<option value="${p}" ${p === prevVal ? 'selected' : ''}>${p}</option>`).join('');
+        }
+
+        function renderExpenseParticipantsCheckboxes() {
+            const container = document.getElementById('expenseParticipants');
+            if(!container) return;
+
+            if (settlementMode === 'couple' && couples.length > 0) {
+                const assigned = getAssignedCoupleMembers();
+                let html = '';
+
+                couples.forEach(c => {
+                    html += `
+                        <div class="inline-flex items-center gap-1.5 bg-slate-900/90 px-2 py-1 rounded-lg border border-indigo-500/30">
+                            <span class="text-[10px] text-indigo-300 font-semibold mr-0.5">부부</span>
+                            <label class="inline-flex items-center gap-1 text-xs text-slate-200 cursor-pointer bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                                <input type="checkbox" value="${c.member1}" checked class="accent-indigo-500 expense-target-checkbox">
+                                ${c.member1}
+                            </label>
+                            <label class="inline-flex items-center gap-1 text-xs text-slate-200 cursor-pointer bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+                                <input type="checkbox" value="${c.member2}" checked class="accent-indigo-500 expense-target-checkbox">
+                                ${c.member2}
+                            </label>
+                        </div>
+                    `;
+                });
+
+                participants.forEach(p => {
+                    if (!assigned.has(p)) {
+                        html += `
+                            <label class="inline-flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
+                                <input type="checkbox" value="${p}" checked class="accent-indigo-500 expense-target-checkbox">
+                                ${p}
+                            </label>
+                        `;
+                    }
+                });
+
+                container.innerHTML = html;
+            } else {
+                container.innerHTML = participants.map(p => `
+                    <label class="inline-flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
+                        <input type="checkbox" value="${p}" checked class="accent-indigo-500 expense-target-checkbox">
+                        ${p}
+                    </label>
+                `).join('');
+            }
+        }
+
+        function addExpense() {
+            const titleInput = document.getElementById('expenseTitle');
+            const amountInput = document.getElementById('expenseAmount');
+            const payerSelect = document.getElementById('expensePayer');
+            const checkboxes = document.querySelectorAll('.expense-target-checkbox:checked');
+
+            const title = titleInput.value.trim() || '일반 지출';
+            const amount = parseFloat(amountInput.value);
+            const payer = payerSelect.value;
+            const targets = Array.from(checkboxes).map(cb => cb.value);
+
+            if (isNaN(amount) || amount <= 0) {
+                alert('올바른 금액을 입력해주세요.');
+                return;
+            }
+            if (targets.length === 0) {
+                alert('참여 인원을 최소 1명 이상 선택해주세요.');
+                return;
+            }
+
+            expenses.push({ id: Date.now(), title, amount, payer, targets });
+            
+            titleInput.value = '';
+            amountInput.value = '';
+            renderExpenses();
+            calculateSettlement();
+            autoSaveExpenseAppData();
+        }
+
+        function deleteExpense(id) {
+            expenses = expenses.filter(e => e.id !== id);
+            renderExpenses();
+            calculateSettlement();
+            autoSaveExpenseAppData();
+        }
+
+        function renderExpenses() {
+            const container = document.getElementById('expenseListContainer');
+            const summary = document.getElementById('totalExpenseSummary');
+            const summaryContainer = document.getElementById('summaryExpenseListContainer');
+            const summaryTotal = document.getElementById('summaryTotalExpense');
+
+            if(!container) return;
+
+            let total = expenses.reduce((sum, e) => sum + e.amount, 0);
+            summary.innerText = `총 지출: ${total.toLocaleString()}원`;
+            if (summaryTotal) summaryTotal.innerText = `총 지출: ${total.toLocaleString()}원`;
+
+            if (expenses.length === 0) {
+                const emptyHtml = `<p class="text-xs text-slate-500 text-center py-4">등록된 지출 내역이 없습니다.</p>`;
+                container.innerHTML = emptyHtml;
+                if (summaryContainer) summaryContainer.innerHTML = emptyHtml;
+                return;
+            }
+
+            const entities = getSettlementEntities();
+
+            const listHtml = expenses.map(e => {
+                const validTargets = e.targets.filter(t => participants.includes(t));
+                let ratioHtml = '';
+
+                if (settlementMode === 'couple' && validTargets.length > 0) {
+                    const countMap = {};
+                    validTargets.forEach(t => {
+                        const ent = findEntityByPerson(t, entities);
+                        if (ent) countMap[ent.id] = (countMap[ent.id] || 0) + 1;
+                    });
+                    const denom = validTargets.length;
+                    const parts = entities
+                        .filter(ent => countMap[ent.id] > 0)
+                        .map(ent => {
+                            const num = countMap[ent.id];
+                            const g = gcd(num, denom);
+                            return `${ent.label}${ent.isCouple ? ' 부부' : ''} ${num / g}/${denom / g}`;
+                        });
+                    if (parts.length > 0) {
+                        ratioHtml = `<div class="text-[11px] text-indigo-300 mt-0.5">부담 비율: ${parts.join(' · ')}</div>`;
+                    }
+                }
+
+                return `
+                    <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-3 flex justify-between items-center text-xs">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-slate-200 text-sm">${e.title}</span>
+                                <span class="text-indigo-400 font-semibold">${e.amount.toLocaleString()}원</span>
+                            </div>
+                            <div class="text-slate-400">
+                                결제자: <span class="text-slate-200 font-medium">${e.payer}</span> | 참여 인원 (${validTargets.length}명): ${validTargets.join(', ')}
+                            </div>
+                            ${ratioHtml}
+                        </div>
+                        <button onclick="deleteExpense(${e.id})" class="text-slate-500 hover:text-rose-400 p-1.5 transition shrink-0">
+                            🗑️
+                        </button>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = listHtml;
+            if (summaryContainer) summaryContainer.innerHTML = listHtml;
+        }
+
+        function calculateSettlement() {
+            renderExpenses(); 
+
+            const entities = getSettlementEntities();
+            let paidMap = {};
+            let shareMap = {};
+            let personShareMap = {};
+
+            entities.forEach(ent => {
+                paidMap[ent.id] = 0;
+                shareMap[ent.id] = 0;
+            });
+            participants.forEach(p => {
+                personShareMap[p] = 0;
+            });
+
+            let debtMatrix = {}; 
+            entities.forEach(e1 => {
+                debtMatrix[e1.id] = {};
+                entities.forEach(e2 => { debtMatrix[e1.id][e2.id] = 0; });
+            });
+
+            expenses.forEach(e => {
+                const validTargets = e.targets.filter(t => participants.includes(t));
+                if (validTargets.length === 0) return;
+
+                const payerEntity = findEntityByPerson(e.payer, entities);
+                if (payerEntity) {
+                    paidMap[payerEntity.id] = (paidMap[payerEntity.id] || 0) + e.amount;
+                }
+
+                let sharePerPerson = e.amount / validTargets.length;
+                
+                validTargets.forEach(t => {
+                    personShareMap[t] = (personShareMap[t] || 0) + sharePerPerson;
+                    const targetEntity = findEntityByPerson(t, entities);
+                    if (targetEntity) {
+                        shareMap[targetEntity.id] = (shareMap[targetEntity.id] || 0) + sharePerPerson;
+                        if (payerEntity && targetEntity.id !== payerEntity.id) {
+                            debtMatrix[targetEntity.id][payerEntity.id] = (debtMatrix[targetEntity.id][payerEntity.id] || 0) + sharePerPerson;
+                        }
+                    }
+                });
+            });
+
+            entities.forEach(e1 => {
+                entities.forEach(e2 => {
+                    if (e1.id !== e2.id && debtMatrix[e1.id][e2.id] > 0 && debtMatrix[e2.id][e1.id] > 0) {
+                        let minVal = Math.min(debtMatrix[e1.id][e2.id], debtMatrix[e2.id][e1.id]);
+                        debtMatrix[e1.id][e2.id] -= minVal;
+                        debtMatrix[e2.id][e1.id] -= minVal;
+                    }
+                });
+            });
+
+            let detailedTransfers = [];
+            entities.forEach(fromEnt => {
+                entities.forEach(toEnt => {
+                    let amt = debtMatrix[fromEnt.id][toEnt.id];
+                    if (amt > 0.1) {
+                        detailedTransfers.push({ from: fromEnt, to: toEnt, amount: Math.round(amt) });
+                    }
+                });
+            });
+
+            let outgoingMap = {};
+            let incomingMap = {};
+            entities.forEach(ent => {
+                outgoingMap[ent.id] = [];
+                incomingMap[ent.id] = [];
+            });
+
+            detailedTransfers.forEach(t => {
+                outgoingMap[t.from.id].push({ to: t.to, amount: t.amount });
+                incomingMap[t.to.id].push({ from: t.from, amount: t.amount });
+            });
+
+            // 요약 헤더 텍스트 업데이트
+            const summarySub = document.getElementById('summarySubTitle');
+            const summaryBadge = document.getElementById('summaryModeBadge');
+            const summaryHeading = document.getElementById('summaryCardsHeading');
+            if (settlementMode === 'couple') {
+                if (summarySub) summarySub.innerText = '지출 내역 및 부부(대표자)별 정산 결과';
+                if (summaryBadge) summaryBadge.innerText = '💑 부부별 정산';
+                if (summaryHeading) summaryHeading.innerText = '부부(대표자)별 정산 카드';
+            } else {
+                if (summarySub) summarySub.innerText = '지출 내역 및 개인별 정산 결과';
+                if (summaryBadge) summaryBadge.innerText = '👤 개인별 정산';
+                if (summaryHeading) summaryHeading.innerText = '개인별 정산 카드';
+            }
+
+            document.getElementById('settlementResultSection').classList.remove('hidden');
+            
+            const personalContainer = document.getElementById('personalSummaries');
+            personalContainer.innerHTML = entities.map(ent => {
+                let paid = paidMap[ent.id] || 0;
+                let share = shareMap[ent.id] || 0;
+                let net = paid - share;
+                
+                let outList = outgoingMap[ent.id] || [];
+                let inList = incomingMap[ent.id] || [];
+                let totalOut = outList.reduce((sum, o) => sum + o.amount, 0);
+
+                let badgeHtml = '';
+                if (net > 0.5) {
+                    badgeHtml = `<span class="bg-emerald-500/20 text-emerald-400 text-xs px-2.5 py-1 rounded-full font-bold">+${Math.round(net).toLocaleString()}원 받을 예정</span>`;
+                } else if (net < -0.5) {
+                    badgeHtml = `<span class="bg-rose-500/20 text-rose-400 text-xs px-2.5 py-1 rounded-full font-bold">${Math.round(-net).toLocaleString()}원 보낼 예정</span>`;
+                } else {
+                    badgeHtml = `<span class="bg-slate-800 text-slate-400 text-xs px-2.5 py-1 rounded-full font-medium">정산 완료 (0원)</span>`;
+                }
+
+                const titleHtml = ent.isCouple
+                    ? `<div>
+                         <div class="flex items-center gap-1.5">
+                           <span class="text-amber-400 text-sm">👑</span>
+                           <span class="font-bold text-slate-100 text-base">${ent.label}</span>
+                         </div>
+                         <div class="text-[11px] text-indigo-300 mt-0.5">${ent.subLabel}</div>
+                       </div>`
+                    : `<div>
+                         <span class="font-bold text-slate-100 text-base">${ent.label}</span>
+                         ${ent.subLabel ? `<div class="text-[11px] text-slate-400 mt-0.5">${ent.subLabel}</div>` : ''}
+                       </div>`;
+
+                const memberBreakdownHtml = ent.isCouple
+                    ? `<div class="text-[11px] text-slate-400 text-right">
+                         (${ent.members.map(m => `${m} ${Math.round(personShareMap[m] || 0).toLocaleString()}원`).join(' + ')})
+                       </div>`
+                    : '';
+
+                return `
+                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+                        <div class="flex justify-between items-start gap-2">
+                            ${titleHtml}
+                            <div class="shrink-0">${badgeHtml}</div>
+                        </div>
+                        <div class="text-xs space-y-1 text-slate-300 border-t border-slate-800/80 pt-2.5">
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">${ent.isCouple ? '부부 결제한 금액:' : '내가 결제한 금액:'}</span>
+                                <span class="font-semibold text-slate-200">${paid.toLocaleString()}원</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-slate-400">${ent.isCouple ? '부부 부담할 몫 (사용 금액):' : '내가 부담할 몫 (사용 금액):'}</span>
+                                <span class="font-semibold text-slate-200">${Math.round(share).toLocaleString()}원</span>
+                            </div>
+                            ${memberBreakdownHtml}
+                        </div>
+
+                        ${outList.length > 0 ? `
+                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5 text-xs">
+                                <div class="text-rose-400 font-semibold">총 송금할 금액: ${totalOut.toLocaleString()}원</div>
+                                ${outList.map(o => `<div class="text-slate-300 pl-2">👉 <span class="text-white font-medium">${o.to.fullTitle}</span> 님에게: <span class="font-semibold text-white">${o.amount.toLocaleString()}원</span></div>`).join('')}
+                            </div>
+                        ` : `
+                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs text-slate-400">
+                                ${ent.isCouple ? '부부 대표가 송금할 금액: 0원 (보낼 금액 없음)' : '내가 송금할 금액: 0원 (보낼 금액 없음)'}
+                            </div>
+                        `}
+
+                        ${inList.length > 0 ? `
+                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5 text-xs">
+                                <div class="text-emerald-400 font-semibold">받을 상세 내역:</div>
+                                ${inList.map(i => `<div class="text-slate-300 pl-2">👉 <span class="text-white font-medium">${i.from.fullTitle}</span> 님으로부터: <span class="font-semibold text-white">${i.amount.toLocaleString()}원</span></div>`).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }).join('');
+
+            autoSaveExpenseAppData();
+        }
+
+        function shareAsImage() {
+            const targetElement = document.getElementById('captureArea');
+            
+            if (document.getElementById('settlementResultSection').classList.contains('hidden')) {
+                alert('먼저 "정산하기" 버튼을 눌러 정산 결과를 생성해주세요!');
+                return;
+            }
+
+            alert('정산 요약 내역을 이미지로 변환 중입니다. 잠시만 기다려주세요!');
+
+            html2canvas(targetElement, {
+                scale: 2,
+                backgroundColor: '#020617',
+                useCORS: true
+            }).then(canvas => {
+                canvas.toBlob(blob => {
+                    const file = new File([blob], 'travel-settlement-summary.png', { type: 'image/png' });
+                    
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        navigator.share({
+                            title: '여행 정산 요약 내역',
+                            text: '여행 정산 및 송금 요약 결과입니다.',
+                            files: [file]
+                        }).catch(() => {});
+                    } else {
+                        const link = document.createElement('a');
+                        link.download = '여행정산요약내역.png';
+                        link.href = canvas.toDataURL('image/png');
+                        link.click();
+                        alert('이미지가 저장되었습니다! 카카오톡 채팅창에 이 이미지를 첨부하여 공유해 주세요.');
+                    }
+                });
+            });
         }
     </script>
 </body>
