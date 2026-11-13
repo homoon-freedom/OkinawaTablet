@@ -1737,7 +1737,8 @@ const defaultPlacesData = {
                     </div>`;
                     L.marker([lat, lng], { icon: numberIcon }).addTo(leafletMap).bindPopup(popupContent);
                     
-                    listHtml += `<div class="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-1.5 rounded-lg transition border border-transparent hover:border-slate-200" onclick="leafletMap.setView([${lat}, ${lng}], 16); leafletMap.eachLayer(function(l){if(l.getLatLng && l.getLatLng().lat === ${lat} && l.getLatLng().lng === ${lng}){l.openPopup();}});">
+                    // 줌 레벨을 변경하지 않고 panTo로 위치만 부드럽게 이동하며 팝업 열기
+                    listHtml += `<div class="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-1.5 rounded-lg transition border border-transparent hover:border-slate-200" onclick="leafletMap.panTo([${lat}, ${lng}]); leafletMap.eachLayer(function(l){if(l.getLatLng && l.getLatLng().lat === ${lat} && l.getLatLng().lng === ${lng}){l.openPopup();}});">
                         <span class="w-6 h-6 bg-[#0891b2] text-white rounded-full flex items-center justify-center text-[11px] font-bold shrink-0">${idx + 1}</span>
                         <span class="font-bold text-slate-700 text-sm truncate" title="${evt.name}">${evt.name}</span>
                     </div>`;
@@ -1789,7 +1790,8 @@ const defaultPlacesData = {
                     </div>`;
                     L.marker([lat, lng], { icon: numberIcon }).addTo(leafletMap).bindPopup(popupContent);
                     
-                    listHtml += `<div class="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-1.5 rounded-lg transition border border-transparent hover:border-slate-200" onclick="leafletMap.setView([${lat}, ${lng}], 16); leafletMap.eachLayer(function(l){if(l.getLatLng && l.getLatLng().lat === ${lat} && l.getLatLng().lng === ${lng}){l.openPopup();}});">
+                    // 줌 레벨을 변경하지 않고 panTo로 위치만 부드럽게 이동하며 팝업 열기
+                    listHtml += `<div class="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-1.5 rounded-lg transition border border-transparent hover:border-slate-200" onclick="leafletMap.panTo([${lat}, ${lng}]); leafletMap.eachLayer(function(l){if(l.getLatLng && l.getLatLng().lat === ${lat} && l.getLatLng().lng === ${lng}){l.openPopup();}});">
                         <span class="w-6 h-6 text-white rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style="background:${markerBgColor};">${idx + 1}</span>
                         <span class="font-bold text-slate-700 text-sm truncate" title="${evt.name}">${evt.name}</span>
                     </div>`;
@@ -2122,7 +2124,7 @@ const defaultPlacesData = {
             const m1 = document.getElementById('coupleMember1').value;
             const m2 = document.getElementById('coupleMember2').value;
             if (!m1 || !m2 || m1 === m2) {
-                alert('서로 다른 두 명의 참가자를 선택해주세요.');
+                alert('서로 다른 두 명의 참여자를 선택해주세요.');
                 return;
             }
             couples.push({ id: Date.now(), member1: m1, member2: m2, rep: m1 });
