@@ -45,6 +45,21 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.2);
             border: 2px solid white;
         }
+        /* 현재 위치 파란색 마커 스타일 */
+        .current-location-marker {
+            background-color: #3b82f6;
+            border: 3px solid white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            box-shadow: 0 0 12px rgba(59, 130, 246, 0.8);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(59, 130, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
+        }
         /* iOS 등에서 화면 확대 방지 */
         input, select, textarea { font-size: 14px !important; }
         /* Flatpickr 달력 최상위 노출 */
@@ -53,7 +68,7 @@
 </head>
 <body class="bg-slate-50 text-slate-800 relative">
 
-    <!-- Header: 두 줄에서 한 줄로 변경 -->
+    <!-- Header -->
     <header class="sticky top-0 z-[60] bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-md">
         <div class="max-w-[1400px] mx-auto px-3 sm:px-4 py-3 flex flex-row items-center justify-between gap-2">
             <h1 class="text-[17px] sm:text-2xl font-bold flex items-center gap-1.5 sm:gap-2 shrink-0 truncate">
@@ -78,7 +93,7 @@
         <!-- 1 & 2. Center Content Wrapper (Tabs + Itinerary) -->
         <div class="flex-1 min-w-0 flex flex-col gap-3 w-full">
             
-            <!-- 상단 가로 탭 (모바일 및 PC 모두 일정 위에 배치) -->
+            <!-- 상단 가로 탭 -->
             <nav id="day-tabs-container" class="w-full sticky z-[35] bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm transition-all overflow-hidden">
                 <div id="day-tabs" class="flex overflow-x-auto gap-1.5 hide-scrollbar w-full items-center px-1"></div>
             </nav>
@@ -93,9 +108,8 @@
         <!-- 3. Right Sidebar (Toggleable Panels: Add Place OR Expense) - 폭 1.2배 확장 (384px / 432px) -->
         <aside id="right-sidebar" class="w-full md:w-[384px] lg:w-[432px] shrink-0 sticky z-[30] h-[calc(100vh-140px)] flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all">
             
-            <!-- 3-A. 장소 추가 패널 (기본 표시) -->
+            <!-- 3-A. 장소 추가 패널 -->
             <div id="place-add-panel" class="flex flex-col h-full w-full bg-slate-50">
-                <!-- Right Panel Header (버튼 우측 위아래 배치) -->
                 <div class="bg-gradient-to-r from-cyan-600 to-blue-700 px-4 py-3 flex justify-between items-center text-white shrink-0 gap-2">
                     <div class="flex-1 min-w-0">
                         <h3 class="font-bold text-[15px] sm:text-base truncate"><i class="fa-solid fa-map-pin mr-1.5"></i>장소 탐색 및 추가</h3>
@@ -111,7 +125,6 @@
                     </div>
                 </div>
 
-                <!-- Panel Scroll Content -->
                 <div class="overflow-y-auto flex-1 hide-scrollbar relative flex flex-col">
                     <div class="sticky top-0 z-20 bg-slate-50 px-4 py-4 border-b border-slate-200 shadow-sm space-y-3">
                         <div class="flex bg-slate-200/70 p-1 rounded-xl">
@@ -133,9 +146,8 @@
                 </div>
             </div>
 
-            <!-- 3-B. 경비 정산 패널 (토글 시 표시) -->
+            <!-- 3-B. 경비 정산 패널 -->
             <div id="expense-panel" class="hidden flex-col h-full w-full bg-slate-50">
-                <!-- Expense Header -->
                 <div class="bg-gradient-to-r from-emerald-600 to-teal-700 px-5 py-3.5 flex justify-between items-center text-white shrink-0">
                     <div>
                         <h3 id="expenseHeaderTitle" class="font-bold text-base"><i class="fa-solid fa-won-sign mr-2"></i>여행 정산 & 송금 계산기</h3>
@@ -144,7 +156,6 @@
                     <button onclick="toggleRightPanel()" class="text-white/80 hover:text-white" title="장소 추가로 돌아가기"><i class="fa-solid fa-xmark text-xl"></i></button>
                 </div>
 
-                <!-- Expense Scroll Content -->
                 <div class="overflow-y-auto flex-1 hide-scrollbar p-4 space-y-4">
                     
                     <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
@@ -357,19 +368,16 @@
         </div>
     </div>
 
-    <!-- 전체/카테고리 위치 지도 모달 -->
-    <div id="mapModal" class="hidden fixed inset-0 z-[100] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col h-[85vh]">
+    <!-- 전체/카테고리 위치 지도 모달 (태블릿 맞춤형 대형 사이즈) -->
+    <div id="mapModal" class="hidden fixed inset-0 z-[100] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6">
+        <div class="bg-white rounded-2xl w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col h-[90vh]">
             <div class="bg-gradient-to-r from-emerald-600 to-teal-700 px-6 py-4 flex justify-between items-center text-white shrink-0">
                 <h3 id="map-modal-title" class="font-bold text-base"><i class="fa-solid fa-map-location-dot mr-2"></i>지도보기</h3>
                 <button onclick="closeMapModal()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <div class="p-4 flex-1 bg-slate-100 flex flex-col">
-                <div id="dayMapContainer" class="w-full flex-1 rounded-xl shadow-inner border border-slate-300 z-10"></div>
-                <p class="text-xs text-slate-500 mt-2 text-center">※ 마커 번호는 순서를 나타내며, 클릭 시 상세 정보를 볼 수 있습니다.</p>
-            </div>
-            <div class="p-3 bg-white border-t border-slate-200 flex justify-end">
-                <button onclick="closeMapModal()" class="bg-slate-700 hover:bg-slate-800 text-white px-5 py-2 rounded-lg font-bold text-sm transition">닫기</button>
+            <!-- 하단 텍스트 및 닫기 버튼 영역 삭제, 지도가 영역을 완전히 덮도록 h-full 적용 -->
+            <div class="p-4 flex-1 bg-slate-100 flex flex-col min-h-0">
+                <div id="dayMapContainer" class="w-full h-full rounded-xl shadow-inner border border-slate-300 z-10"></div>
             </div>
         </div>
     </div>
@@ -626,6 +634,7 @@ const defaultPlacesData = {
         let addMode = 'place'; 
         let rightPanelMode = 'place'; // 'place' or 'expense'
         let leafletMap = null; 
+        let userLocationMarker = null;
 
         let headerFp = null;
         let settingsFp = null;
@@ -701,10 +710,9 @@ const defaultPlacesData = {
                     if(dayTabsContainer) dayTabsContainer.style.top = hHeight + 'px';
                 }
                 
-                // 가로 탭의 높이 및 여백을 계산하여 일정 헤더의 sticky 위치 지정
                 let tabsOffset = dayTabsContainer ? dayTabsContainer.offsetHeight : 0;
                 let topMargin = window.innerWidth >= 768 ? 16 : 0;
-                let gap = 12; // gap-3 = 12px
+                let gap = 12;
                 
                 const dayHeaders = document.querySelectorAll('.day-header-sticky');
                 dayHeaders.forEach(el => {
@@ -746,7 +754,6 @@ const defaultPlacesData = {
             initExpenseApp();
         };
 
-        // 우측 패널 토글 함수 (장소 추가 <-> 경비 정산)
         function toggleRightPanel(forceMode = null) {
             if (forceMode) {
                 if(rightPanelMode === forceMode) return;
@@ -938,7 +945,7 @@ const defaultPlacesData = {
             const filteredPlaces = places.filter(p => p.group === currentCategory);
             
             const catMapBtn = document.getElementById('categoryMapBtn');
-            if(catMapBtn) catMapBtn.innerHTML = `<i class="fa-solid fa-map-location-dot"></i>${currentCategory} 지도`;
+            if(catMapBtn) catMapBtn.innerHTML = `<i class="fa-solid fa-map-location-dot"></i> 분류(${currentCategory}) 지도`;
 
             let html = '';
             if (filteredPlaces.length === 0) {
@@ -1208,7 +1215,6 @@ const defaultPlacesData = {
         function renderPlanner() {
             const days = tripData.days || [];
             
-            // 탭 버튼의 크기를 조절하고 가로 스크롤에 맞게 shrink-0 적용
             let tabsHtml = `<button onclick="setActiveDay(-1)" class="w-auto shrink-0 px-3.5 py-2 rounded-lg text-[13px] md:text-sm font-bold transition whitespace-nowrap border ${tripData.activeDay === -1 ? 'bg-cyan-600 border-cyan-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50'}">전체일정</button>`;
             
             tabsHtml += days.map((d, idx) => `
@@ -1232,6 +1238,37 @@ const defaultPlacesData = {
         }
         
         function updateEventMemo(dayIdx, evtIdx, val) { tripData.days[dayIdx].events[evtIdx].memo = val; saveDataToLocalStorage(); }
+
+        // 현재 위치를 지도에 추가하는 공통 함수
+        function addCurrentLocationToMap(map, boundsArray) {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        
+                        const locIcon = L.divIcon({
+                            className: 'custom-marker-container',
+                            html: `<div class="current-location-marker"></div>`,
+                            iconSize: [18, 18],
+                            iconAnchor: [9, 9]
+                        });
+                        
+                        userLocationMarker = L.marker([lat, lng], {icon: locIcon, zIndexOffset: 1000})
+                            .addTo(map)
+                            .bindPopup('<div style="font-size:12px; font-weight:bold; color:#1e40af; text-align:center;">나의 현재 위치</div>');
+                            
+                        // 현재 위치를 bounds에 포함시켜서 줌을 맞출 경우(거리가 멀면 너무 축소될 수 있음)
+                        // boundsArray.push([lat, lng]); 
+                        // map.fitBounds(boundsArray, { padding: [50, 50] });
+                    },
+                    function(error) {
+                        console.warn("현재 위치를 가져올 수 없습니다.", error);
+                    },
+                    { timeout: 10000, enableHighAccuracy: true }
+                );
+            }
+        }
 
         function openDayMapModal(dayIdx) {
             const dayObj = tripData.days[dayIdx];
@@ -1263,7 +1300,11 @@ const defaultPlacesData = {
                     </div>`;
                     L.marker([lat, lng], { icon: numberIcon }).addTo(leafletMap).bindPopup(popupContent);
                 });
+                
                 if (bounds.length > 0) leafletMap.fitBounds(bounds, { padding: [50, 50] });
+                
+                // 현재 위치 추가
+                addCurrentLocationToMap(leafletMap, bounds);
             }, 100);
         }
 
@@ -1300,10 +1341,16 @@ const defaultPlacesData = {
                 
                 if (bounds.length > 0) leafletMap.fitBounds(bounds, { padding: [50, 50] });
                 else leafletMap.setView([26.3, 127.8], 10);
+                
+                // 현재 위치 추가
+                addCurrentLocationToMap(leafletMap, bounds);
             }, 100);
         }
 
-        function closeMapModal() { document.getElementById('mapModal').classList.add('hidden'); if (leafletMap) { leafletMap.remove(); leafletMap = null; } }
+        function closeMapModal() { 
+            document.getElementById('mapModal').classList.add('hidden'); 
+            if (leafletMap) { leafletMap.remove(); leafletMap = null; userLocationMarker = null; } 
+        }
 
         function generateDayHtmlForCapture(day) {
             let eventsHtml = '';
@@ -1400,7 +1447,6 @@ const defaultPlacesData = {
             }
             switchCategory(mode === 'hotel' ? '호텔' : '관광지');
             
-            // 장소 추가 시 패널이 경비 상태라면 장소 패널로 전환
             if(rightPanelMode === 'expense') toggleRightPanel('place');
 
             const rightPanel = document.getElementById('right-sidebar');
