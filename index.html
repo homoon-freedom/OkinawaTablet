@@ -61,7 +61,7 @@
             100% { box-shadow: 0 0 0 0 rgba(59, 130, 246, 0); }
         }
         /* iOS 등에서 화면 확대 방지 */
-        input, select, textarea { font-size: 14px !important; }
+        input, select, textarea { font-size: 16px !important; }
         /* Flatpickr 달력 최상위 노출 */
         .flatpickr-calendar { z-index: 9999 !important; font-family: inherit; }
 
@@ -96,23 +96,18 @@
     <!-- Main Layout -->
     <main class="max-w-[1500px] mx-auto w-full px-2 sm:px-4 py-4 sm:py-6 flex flex-col md:flex-row gap-4 items-start">
         
-        <!-- 1 & 2. Center Content Wrapper (Tabs + Itinerary) -->
-        <div class="flex-1 min-w-0 flex flex-col md:flex-row gap-3 w-full items-start">
-            
-            <!-- 탭 (모바일: 상단 가로, 데스크탑: 좌측 세로) -->
-            <nav id="day-tabs-container" class="w-full md:w-[90px] lg:w-[100px] shrink-0 sticky z-[35] bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm transition-all overflow-hidden md:max-h-[calc(100vh-140px)] md:overflow-y-auto hide-scrollbar">
-                <div id="day-tabs" class="flex flex-row md:flex-col overflow-x-auto gap-1.5 hide-scrollbar w-full items-center md:items-stretch px-1 md:px-0"></div>
-            </nav>
+        <!-- 탭 (전체일정 ~ Day 8) -->
+        <nav id="day-tabs-container" class="w-full md:w-[90px] lg:w-[100px] shrink-0 sticky z-[35] bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm transition-all overflow-hidden md:max-h-[calc(100vh-140px)] md:overflow-y-auto hide-scrollbar">
+            <div id="day-tabs" class="flex flex-row md:flex-col overflow-x-auto gap-1.5 hide-scrollbar w-full items-center md:items-stretch px-1 md:px-0"></div>
+        </nav>
 
-            <!-- 중앙 일정 내용 -->
-            <section class="flex-1 min-w-0 w-full bg-white rounded-2xl shadow-sm border border-slate-200 relative min-h-[70vh]">
-                <div id="day-content" class="space-y-4 pt-0 relative pb-6"></div>
-            </section>
+        <!-- 1 & 2. Center Content Wrapper (일정 영역 - 60%) -->
+        <section class="w-full md:flex-[6] min-w-0 bg-white rounded-2xl shadow-sm border border-slate-200 relative min-h-[70vh]">
+            <div id="day-content" class="space-y-4 pt-0 relative pb-6"></div>
+        </section>
 
-        </div>
-
-        <!-- 3. Right Sidebar (Toggleable Panels: Add Place OR Expense) - 폭 1.2배 확장 (460px / 520px) -->
-        <aside id="right-sidebar" class="w-full md:w-[460px] lg:w-[520px] shrink-0 sticky z-[30] h-[calc(100vh-140px)] flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all">
+        <!-- 3. Right Sidebar (우측 장소 추가/경비 패널 - 40%) -->
+        <aside id="right-sidebar" class="w-full md:flex-[4] min-w-0 sticky z-[30] h-[calc(100vh-140px)] flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all">
             
             <!-- 3-A. 장소 추가 패널 -->
             <div id="place-add-panel" class="flex flex-col h-full w-full bg-slate-50">
@@ -157,106 +152,106 @@
             <div id="expense-panel" class="hidden flex-col h-full w-full bg-slate-50">
                 <div class="bg-gradient-to-r from-emerald-600 to-teal-700 px-5 py-3.5 flex justify-between items-center text-white shrink-0">
                     <div>
-                        <h3 id="expenseHeaderTitle" class="font-bold text-base"><i class="fa-solid fa-won-sign mr-2"></i>여행 정산 & 송금 계산기</h3>
-                        <p class="text-[11px] text-emerald-100 mt-0.5">개인별 · 부부별 맞춤형 지출 정산 시스템</p>
+                        <h3 id="expenseHeaderTitle" class="font-bold text-lg"><i class="fa-solid fa-won-sign mr-2"></i>여행 정산 & 송금 계산기</h3>
+                        <p class="text-sm text-emerald-100 mt-0.5">개인별 · 부부별 맞춤형 지출 정산 시스템</p>
                     </div>
                     <button onclick="toggleRightPanel()" class="text-white/80 hover:text-white" title="장소 추가로 돌아가기"><i class="fa-solid fa-xmark text-xl"></i></button>
                 </div>
 
                 <div class="overflow-y-auto flex-1 hide-scrollbar p-4 space-y-4">
                     
-                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-4">
                         <div>
-                            <label class="text-xs text-slate-500 font-bold mb-1 block">여행 장소 / 제목</label>
+                            <label class="text-sm text-slate-500 font-bold mb-1.5 block">여행 장소 / 제목</label>
                             <div class="flex gap-2 items-center">
                                 <input type="text" id="tripTitleInput" placeholder="예: 오키나와 우정 여행" oninput="updateTripTitle()"
-                                    class="flex-1 min-w-0 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-emerald-500 text-sm font-medium">
-                                <button onclick="saveExpenseAppData()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm shrink-0 h-[38px]">
+                                    class="flex-1 min-w-0 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-emerald-500 text-base font-medium">
+                                <button onclick="saveExpenseAppData()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm shrink-0 h-[42px]">
                                     <span>💾</span> 저장
                                 </button>
-                                <button onclick="shareAsImage()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm shrink-0 h-[38px]">
+                                <button onclick="shareAsImage()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm shrink-0 h-[42px]">
                                     <span>💬</span> 공유
                                 </button>
                             </div>
                         </div>
 
-                        <div class="flex justify-between items-center border-t border-slate-100 pt-3">
-                            <h3 class="text-sm font-bold text-slate-800">참여자 관리</h3>
-                            <span id="participantCount" class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">4명</span>
+                        <div class="flex justify-between items-center border-t border-slate-100 pt-4">
+                            <h3 class="text-base font-bold text-slate-800">참여자 관리</h3>
+                            <span id="participantCount" class="text-sm bg-emerald-100 text-emerald-700 px-2.5 py-0.5 rounded-full font-bold">4명</span>
                         </div>
                         <div class="flex gap-2">
                             <input type="text" id="newParticipantName" placeholder="이름 (예: 찬팅)" 
-                                class="w-[60%] bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-slate-800 focus:outline-none focus:border-emerald-500 text-sm font-medium">
-                            <button onclick="addParticipant()" class="w-[40%] bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 px-3 rounded-xl text-xs font-bold transition shadow-sm">
+                                class="w-[60%] bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-emerald-500 text-base font-medium">
+                            <button onclick="addParticipant()" class="w-[40%] bg-emerald-600 hover:bg-emerald-700 text-white py-2 px-3 rounded-xl text-xs font-bold transition shadow-sm">
                                 참여자 추가
                             </button>
                         </div>
-                        <div id="participantTags" class="flex flex-wrap gap-1.5 pt-1"></div>
+                        <div id="participantTags" class="flex flex-wrap gap-2 pt-1"></div>
 
                         <!-- 정산 방식 선택 -->
-                        <div class="border-t border-slate-100 pt-3 space-y-2.5">
+                        <div class="border-t border-slate-100 pt-4 space-y-3">
                             <div class="flex justify-between items-center">
-                                <span class="text-xs font-bold text-slate-800">정산 방식 선택</span>
+                                <span class="text-sm font-bold text-slate-800">정산 방식 선택</span>
                                 <div class="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200">
                                     <button type="button" id="modeIndividualBtn" onclick="setSettlementMode('individual')"
-                                        class="px-3 py-1 rounded-lg text-xs font-bold transition bg-white text-emerald-700 shadow-sm border border-slate-200">
+                                        class="px-3 py-1.5 rounded-lg text-sm font-bold transition bg-white text-emerald-700 shadow-sm border border-slate-200">
                                         👤 개인별 정산
                                     </button>
                                     <button type="button" id="modeCoupleBtn" onclick="setSettlementMode('couple')"
-                                        class="px-3 py-1 rounded-lg text-xs font-bold transition text-slate-500 hover:text-slate-700">
+                                        class="px-3 py-1.5 rounded-lg text-sm font-bold transition text-slate-500 hover:text-slate-700">
                                         💑 부부별 정산
                                     </button>
                                 </div>
                             </div>
 
                             <!-- 부부 그룹 설정 영역 -->
-                            <div id="coupleSetupSection" class="hidden bg-slate-50 border border-emerald-200 rounded-xl p-3 space-y-2.5 shadow-inner">
+                            <div id="coupleSetupSection" class="hidden bg-slate-50 border border-emerald-200 rounded-xl p-3.5 space-y-3 shadow-inner">
                                 <div class="flex justify-between items-center">
-                                    <span class="text-xs font-extrabold text-emerald-700">💑 부부 묶기 및 대표자 지정</span>
-                                    <span class="text-[10px] font-bold text-slate-400">👑 클릭 시 대표 변경</span>
+                                    <span class="text-sm font-extrabold text-emerald-700">💑 부부 묶기 및 대표자 지정</span>
+                                    <span class="text-xs font-bold text-slate-400">👑 클릭 시 대표 변경</span>
                                 </div>
 
-                                <div id="couplePairCreator" class="space-y-1.5">
-                                    <div class="grid grid-cols-2 gap-1.5">
-                                        <select id="coupleMember1" class="w-full min-w-0 bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800 text-sm font-medium outline-none focus:border-emerald-500"></select>
-                                        <select id="coupleMember2" class="w-full min-w-0 bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800 text-sm font-medium outline-none focus:border-emerald-500"></select>
+                                <div id="couplePairCreator" class="space-y-2">
+                                    <div class="grid grid-cols-2 gap-2">
+                                        <select id="coupleMember1" class="w-full min-w-0 bg-white border border-slate-300 rounded-lg px-2 py-2 text-slate-800 text-base font-medium outline-none focus:border-emerald-500"></select>
+                                        <select id="coupleMember2" class="w-full min-w-0 bg-white border border-slate-300 rounded-lg px-2 py-2 text-slate-800 text-base font-medium outline-none focus:border-emerald-500"></select>
                                     </div>
-                                    <button type="button" onclick="addCouplePair()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-lg text-xs font-bold transition shadow-sm">
+                                    <button type="button" onclick="addCouplePair()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-sm font-bold transition shadow-sm">
                                         + 선택한 두 명을 부부로 묶기
                                     </button>
                                 </div>
-                                <div id="coupleListContainer" class="space-y-1.5 pt-1"></div>
+                                <div id="coupleListContainer" class="space-y-2 pt-1"></div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Add Expense Form -->
-                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
-                        <h3 class="text-sm font-bold text-slate-800">지출 입력</h3>
-                        <div class="space-y-2.5">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-4">
+                        <h3 class="text-base font-bold text-slate-800">지출 입력</h3>
+                        <div class="space-y-3">
                             <div>
-                                <label class="text-xs font-bold text-slate-500 mb-1 block">지출 항목명</label>
+                                <label class="text-sm font-bold text-slate-500 mb-1.5 block">지출 항목명</label>
                                 <input type="text" id="expenseTitle" placeholder="예: 숙박, 식사, 택시" 
-                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-emerald-500">
+                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-emerald-500 text-base">
                             </div>
-                            <div class="grid grid-cols-2 gap-2">
+                            <div class="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label class="text-xs font-bold text-slate-500 mb-1 block">금액 (원)</label>
+                                    <label class="text-sm font-bold text-slate-500 mb-1.5 block">금액 (원)</label>
                                     <input type="number" id="expenseAmount" placeholder="0" 
-                                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 font-bold focus:outline-none focus:border-emerald-500">
+                                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 font-bold focus:outline-none focus:border-emerald-500 text-base">
                                 </div>
                                 <div>
-                                    <label class="text-xs font-bold text-slate-500 mb-1 block">결제자</label>
-                                    <select id="expensePayer" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-emerald-500"></select>
+                                    <label class="text-sm font-bold text-slate-500 mb-1.5 block">결제자</label>
+                                    <select id="expensePayer" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-emerald-500 text-base"></select>
                                 </div>
                             </div>
                             <div>
-                                <div class="flex justify-between items-center mb-1">
-                                    <label class="text-xs font-bold text-slate-500 block">지출 참여 인원 (체크된 사람 1/N)</label>
+                                <div class="flex justify-between items-center mb-1.5">
+                                    <label class="text-sm font-bold text-slate-500 block">지출 참여 인원 (체크된 사람 1/N)</label>
                                 </div>
-                                <div id="expenseParticipants" class="flex flex-wrap gap-2 pt-1 bg-slate-50 p-2.5 rounded-xl border border-slate-200"></div>
+                                <div id="expenseParticipants" class="flex flex-wrap gap-2 pt-1 bg-slate-50 p-3 rounded-xl border border-slate-200"></div>
                             </div>
-                            <button onclick="addExpense()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 rounded-xl text-sm transition shadow-sm">
+                            <button onclick="addExpense()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 rounded-xl text-sm transition shadow-sm mt-2">
                                 지출 내역 추가
                             </button>
                         </div>
@@ -265,46 +260,46 @@
                     <!-- Expense List -->
                     <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
                         <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleExpenseList()">
-                            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                                지출 내역 목록 <span class="text-[10px] text-emerald-600 font-normal">(클릭하여 펼치기/접기)</span>
+                            <h3 class="text-base font-bold text-slate-800 flex items-center gap-1.5">
+                                지출 내역 목록 <span class="text-xs text-emerald-600 font-normal">(클릭하여 펼치기/접기)</span>
                             </h3>
-                            <span id="totalExpenseSummary" class="text-xs text-emerald-700 font-extrabold">총 지출: 0원</span>
+                            <span id="totalExpenseSummary" class="text-sm text-emerald-700 font-extrabold">총 지출: 0원</span>
                         </div>
-                        <div id="expenseListContainer" class="space-y-2 hidden">
-                            <p class="text-xs text-slate-400 text-center py-4 font-medium">등록된 지출 내역이 없습니다.</p>
+                        <div id="expenseListContainer" class="space-y-3 hidden">
+                            <p class="text-sm text-slate-400 text-center py-4 font-medium">등록된 지출 내역이 없습니다.</p>
                         </div>
                     </div>
 
                     <!-- Calculate Button -->
-                    <button onclick="calculateSettlement()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-2xl text-sm transition shadow-sm flex items-center justify-center gap-2">
+                    <button onclick="calculateSettlement()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3.5 rounded-2xl text-base transition shadow-sm flex items-center justify-center gap-2">
                         <span>🧮</span> 정산하기 (자동 계산)
                     </button>
 
                     <!-- Settlement Results -->
                     <div id="settlementResultSection" class="space-y-4 hidden">
-                        <div id="captureArea" class="bg-slate-100 p-3 space-y-4 rounded-2xl border border-slate-200">
+                        <div id="captureArea" class="bg-slate-100 p-4 space-y-4 rounded-2xl border border-slate-200">
                             
                             <div class="border-b border-slate-300 pb-3 flex justify-between items-center">
                                 <div>
-                                    <h3 id="summaryMainTitle" class="text-base font-extrabold text-slate-800">여행 정산 및 송금 요약</h3>
-                                    <p id="summarySubTitle" class="text-[11px] font-bold text-slate-500">지출 내역 및 개인별 정산 결과</p>
+                                    <h3 id="summaryMainTitle" class="text-lg font-extrabold text-slate-800">여행 정산 및 송금 요약</h3>
+                                    <p id="summarySubTitle" class="text-sm font-bold text-slate-500">지출 내역 및 개인별 정산 결과</p>
                                 </div>
-                                <span id="summaryModeBadge" class="text-xs bg-emerald-200 text-emerald-800 px-2.5 py-1 rounded-full font-bold shadow-sm">개인별 정산</span>
+                                <span id="summaryModeBadge" class="text-sm bg-emerald-200 text-emerald-800 px-3 py-1 rounded-full font-bold shadow-sm">개인별 정산</span>
                             </div>
 
                             <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
                                 <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleSummaryExpenseList()">
-                                    <h4 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
-                                        전체 지출 내역 <span class="text-[10px] text-emerald-600 font-normal">(클릭하여 펼치기/접기)</span>
+                                    <h4 class="text-base font-bold text-slate-800 flex items-center gap-1.5">
+                                        전체 지출 내역 <span class="text-xs text-emerald-600 font-normal">(클릭하여 펼치기/접기)</span>
                                     </h4>
-                                    <span id="summaryTotalExpense" class="text-xs text-emerald-700 font-extrabold">총 지출: 0원</span>
+                                    <span id="summaryTotalExpense" class="text-sm text-emerald-700 font-extrabold">총 지출: 0원</span>
                                 </div>
-                                <div id="summaryExpenseListContainer" class="space-y-2 hidden"></div>
+                                <div id="summaryExpenseListContainer" class="space-y-3 hidden"></div>
                             </div>
 
                             <div class="space-y-3">
-                                <h4 id="summaryCardsHeading" class="text-sm font-extrabold text-slate-800 pt-1 px-1">개인별 정산 카드</h4>
-                                <div id="personalSummaries" class="space-y-3"></div>
+                                <h4 id="summaryCardsHeading" class="text-base font-extrabold text-slate-800 pt-1 px-1">개인별 정산 카드</h4>
+                                <div id="personalSummaries" class="space-y-4"></div>
                             </div>
 
                         </div>
@@ -846,12 +841,11 @@ const defaultPlacesData = {
                     if(dayTabsContainer) dayTabsContainer.style.top = hHeight + 'px';
                 }
                 
-                // 데스크탑에서는 탭이 좌측에 있으므로 탭 높이를 상단 여백에 더할 필요가 없음
                 let tabsOffset = 0;
                 let topMargin = window.innerWidth >= 768 ? 16 : 0;
                 
                 if (window.innerWidth < 768 && dayTabsContainer) {
-                    tabsOffset = dayTabsContainer.offsetHeight + 12; // 모바일에서는 탭 아래 여백 추가
+                    tabsOffset = dayTabsContainer.offsetHeight + 12;
                 }
                 
                 const dayHeaders = document.querySelectorAll('.day-header-sticky');
@@ -1646,7 +1640,6 @@ const defaultPlacesData = {
         
         function updateEventMemo(dayIdx, evtIdx, val) { tripData.days[dayIdx].events[evtIdx].memo = val; saveDataToLocalStorage(); }
 
-        // 현재 위치를 지도에 추가하는 공통 함수
         function addCurrentLocationToMap(map, boundsArray) {
             if ("geolocation" in navigator) {
                 navigator.geolocation.getCurrentPosition(
@@ -1706,8 +1699,6 @@ const defaultPlacesData = {
                 });
                 
                 if (bounds.length > 0) leafletMap.fitBounds(bounds, { padding: [50, 50] });
-                
-                // 현재 위치 추가
                 addCurrentLocationToMap(leafletMap, bounds);
             }, 100);
         }
@@ -1746,7 +1737,6 @@ const defaultPlacesData = {
                 if (bounds.length > 0) leafletMap.fitBounds(bounds, { padding: [50, 50] });
                 else leafletMap.setView([26.3, 127.8], 10);
                 
-                // 현재 위치 추가
                 addCurrentLocationToMap(leafletMap, bounds);
             }, 100);
         }
@@ -1984,12 +1974,12 @@ const defaultPlacesData = {
             if (!indBtn || !cplBtn || !setupSec) return;
 
             if (settlementMode === 'couple') {
-                indBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold transition text-slate-500 hover:text-slate-700';
-                cplBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold transition bg-white text-emerald-700 shadow-sm border border-slate-200';
+                indBtn.className = 'px-3 py-1.5 rounded-lg text-sm font-bold transition text-slate-500 hover:text-slate-700';
+                cplBtn.className = 'px-3 py-1.5 rounded-lg text-sm font-bold transition bg-white text-emerald-700 shadow-sm border border-slate-200';
                 setupSec.classList.remove('hidden');
             } else {
-                indBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold transition bg-white text-emerald-700 shadow-sm border border-slate-200';
-                cplBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold transition text-slate-500 hover:text-slate-700';
+                indBtn.className = 'px-3 py-1.5 rounded-lg text-sm font-bold transition bg-white text-emerald-700 shadow-sm border border-slate-200';
+                cplBtn.className = 'px-3 py-1.5 rounded-lg text-sm font-bold transition text-slate-500 hover:text-slate-700';
                 setupSec.classList.add('hidden');
             }
         }
@@ -2024,7 +2014,7 @@ const defaultPlacesData = {
 
             let html = '';
             if (couples.length === 0) {
-                html += `<p class="text-[11px] text-slate-400 text-center py-1 font-medium">아직 묶인 부부가 없습니다. 위에서 두 명을 선택해 부부로 묶어주세요.</p>`;
+                html += `<p class="text-sm text-slate-400 text-center py-1 font-medium">아직 묶인 부부가 없습니다. 위에서 두 명을 선택해 부부로 묶어주세요.</p>`;
             } else {
                 html += couples.map((c, idx) => {
                     const isM1Rep = c.rep === c.member1;
@@ -2032,20 +2022,20 @@ const defaultPlacesData = {
                     return `
                         <div class="bg-white border border-slate-200 rounded-lg px-2.5 py-2 flex items-center justify-between gap-2 shadow-sm">
                             <div class="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
-                                <span class="text-[10px] font-bold text-emerald-600 mr-0.5">부부${idx + 1}</span>
+                                <span class="text-xs font-bold text-emerald-600 mr-0.5">부부${idx + 1}</span>
                                 <button type="button" onclick="setCoupleRep(${c.id}, '${c.member1}')"
-                                    class="px-2 py-0.5 rounded-md text-xs font-bold border transition flex items-center gap-1 ${isM1Rep ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-700'}"
+                                    class="px-2 py-0.5 rounded-md text-sm font-bold border transition flex items-center gap-1 ${isM1Rep ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-700'}"
                                     title="클릭하여 대표자로 지정">
                                     ${isM1Rep ? '<span>👑</span>' : ''}${c.member1}
                                 </button>
-                                <span class="text-slate-400 text-xs font-bold">&amp;</span>
+                                <span class="text-slate-400 text-sm font-bold">&amp;</span>
                                 <button type="button" onclick="setCoupleRep(${c.id}, '${c.member2}')"
-                                    class="px-2 py-0.5 rounded-md text-xs font-bold border transition flex items-center gap-1 ${isM2Rep ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-700'}"
+                                    class="px-2 py-0.5 rounded-md text-sm font-bold border transition flex items-center gap-1 ${isM2Rep ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-700'}"
                                     title="클릭하여 대표자로 지정">
                                     ${isM2Rep ? '<span>👑</span>' : ''}${c.member2}
                                 </button>
                             </div>
-                            <button type="button" onclick="removeCouplePair(${c.id})" class="text-slate-400 hover:text-rose-500 text-xs px-1.5 py-0.5 shrink-0 font-bold" title="부부 묶기 해제">
+                            <button type="button" onclick="removeCouplePair(${c.id})" class="text-slate-400 hover:text-rose-500 text-sm px-1.5 py-0.5 shrink-0 font-bold" title="부부 묶기 해제">
                                 해제
                             </button>
                         </div>
@@ -2054,7 +2044,7 @@ const defaultPlacesData = {
             }
 
             if (unassigned.length > 0) {
-                html += `<div class="text-[11px] text-slate-500 pt-1 px-1 font-medium">미지정(개인 단위 정산): <span class="text-slate-700 font-bold">${unassigned.join(', ')}</span></div>`;
+                html += `<div class="text-sm text-slate-500 pt-1 px-1 font-medium">미지정(개인 단위 정산): <span class="text-slate-700 font-bold">${unassigned.join(', ')}</span></div>`;
             }
 
             listContainer.innerHTML = html;
@@ -2164,7 +2154,7 @@ const defaultPlacesData = {
             countBadge.innerText = `${participants.length}명`;
             
             container.innerHTML = participants.map(p => `
-                <span class="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm">
+                <span class="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-bold shadow-sm">
                     ${p}
                     ${participants.length > 1 ? `<button onclick="removeParticipant('${p}')" class="text-slate-400 hover:text-rose-500 font-extrabold">&times;</button>` : ''}
                 </span>
@@ -2215,14 +2205,14 @@ const defaultPlacesData = {
 
                 couples.forEach(c => {
                     html += `
-                        <div class="inline-flex items-center gap-1.5 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 shadow-sm">
-                            <span class="text-[10px] text-emerald-700 font-extrabold mr-0.5">부부</span>
-                            <label class="inline-flex items-center gap-1 text-xs text-slate-700 cursor-pointer bg-white px-2 py-0.5 rounded border border-slate-200 font-bold shadow-sm">
-                                <input type="checkbox" value="${c.member1}" checked class="accent-emerald-600 expense-target-checkbox">
+                        <div class="inline-flex items-center gap-1.5 bg-emerald-50 px-2 py-1.5 rounded-lg border border-emerald-200 shadow-sm">
+                            <span class="text-xs text-emerald-700 font-extrabold mr-0.5">부부</span>
+                            <label class="inline-flex items-center gap-1.5 text-sm text-slate-700 cursor-pointer bg-white px-2.5 py-1 rounded border border-slate-200 font-bold shadow-sm">
+                                <input type="checkbox" value="${c.member1}" checked class="accent-emerald-600 expense-target-checkbox w-4 h-4 mt-0.5">
                                 ${c.member1}
                             </label>
-                            <label class="inline-flex items-center gap-1 text-xs text-slate-700 cursor-pointer bg-white px-2 py-0.5 rounded border border-slate-200 font-bold shadow-sm">
-                                <input type="checkbox" value="${c.member2}" checked class="accent-emerald-600 expense-target-checkbox">
+                            <label class="inline-flex items-center gap-1.5 text-sm text-slate-700 cursor-pointer bg-white px-2.5 py-1 rounded border border-slate-200 font-bold shadow-sm">
+                                <input type="checkbox" value="${c.member2}" checked class="accent-emerald-600 expense-target-checkbox w-4 h-4 mt-0.5">
                                 ${c.member2}
                             </label>
                         </div>
@@ -2232,8 +2222,8 @@ const defaultPlacesData = {
                 participants.forEach(p => {
                     if (!assigned.has(p)) {
                         html += `
-                            <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm font-bold">
-                                <input type="checkbox" value="${p}" checked class="accent-emerald-600 expense-target-checkbox">
+                            <label class="inline-flex items-center gap-1.5 text-sm text-slate-700 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm font-bold">
+                                <input type="checkbox" value="${p}" checked class="accent-emerald-600 expense-target-checkbox w-4 h-4 mt-0.5">
                                 ${p}
                             </label>
                         `;
@@ -2243,8 +2233,8 @@ const defaultPlacesData = {
                 container.innerHTML = html;
             } else {
                 container.innerHTML = participants.map(p => `
-                    <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm font-bold">
-                        <input type="checkbox" value="${p}" checked class="accent-emerald-600 expense-target-checkbox">
+                    <label class="inline-flex items-center gap-1.5 text-sm text-slate-700 cursor-pointer bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm font-bold">
+                        <input type="checkbox" value="${p}" checked class="accent-emerald-600 expense-target-checkbox w-4 h-4 mt-0.5">
                         ${p}
                     </label>
                 `).join('');
@@ -2294,7 +2284,7 @@ const defaultPlacesData = {
             if (summaryTotal) summaryTotal.innerText = `총 지출: ${total.toLocaleString()}원`;
 
             if (expenses.length === 0) {
-                const emptyHtml = `<p class="text-xs text-slate-400 font-medium text-center py-4">등록된 지출 내역이 없습니다.</p>`;
+                const emptyHtml = `<p class="text-sm text-slate-400 font-medium text-center py-4">등록된 지출 내역이 없습니다.</p>`;
                 container.innerHTML = emptyHtml;
                 if (summaryContainer) summaryContainer.innerHTML = emptyHtml;
                 return;
@@ -2321,24 +2311,24 @@ const defaultPlacesData = {
                             return `${ent.label}${ent.isCouple ? ' 부부' : ''} ${num / g}/${denom / g}`;
                         });
                     if (parts.length > 0) {
-                        ratioHtml = `<div class="text-[11px] text-emerald-600 font-bold mt-0.5">부담 비율: ${parts.join(' · ')}</div>`;
+                        ratioHtml = `<div class="text-xs text-emerald-600 font-bold mt-1">부담 비율: ${parts.join(' · ')}</div>`;
                     }
                 }
 
                 return `
-                    <div class="bg-white border border-slate-200 rounded-xl p-3 flex justify-between items-center text-xs shadow-sm">
-                        <div class="space-y-1">
+                    <div class="bg-white border border-slate-200 rounded-xl p-3.5 flex justify-between items-center text-sm shadow-sm">
+                        <div class="space-y-1.5">
                             <div class="flex items-center gap-2">
-                                <span class="font-bold text-slate-800 text-sm">${e.title}</span>
-                                <span class="text-emerald-700 font-extrabold">${e.amount.toLocaleString()}원</span>
+                                <span class="font-bold text-slate-800 text-base">${e.title}</span>
+                                <span class="text-emerald-700 font-extrabold text-base">${e.amount.toLocaleString()}원</span>
                             </div>
                             <div class="text-slate-500 font-medium">
                                 결제자: <span class="text-slate-800 font-bold">${e.payer}</span> | 참여 인원 (${validTargets.length}명): <span class="font-bold">${validTargets.join(', ')}</span>
                             </div>
                             ${ratioHtml}
                         </div>
-                        <button onclick="deleteExpense(${e.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition shrink-0 font-bold" title="삭제">
-                            <i class="fa-solid fa-trash-can text-sm"></i>
+                        <button onclick="deleteExpense(${e.id})" class="text-slate-400 hover:text-rose-500 p-2 transition shrink-0 font-bold" title="삭제">
+                            <i class="fa-solid fa-trash-can text-base"></i>
                         </button>
                     </div>
                 `;
@@ -2430,28 +2420,28 @@ const defaultPlacesData = {
 
                 let badgeHtml = '';
                 if (net > 0.5) {
-                    badgeHtml = `<span class="bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs px-2.5 py-1 rounded-full font-bold shadow-sm">+${Math.round(net).toLocaleString()}원 받을 예정</span>`;
+                    badgeHtml = `<span class="bg-emerald-100 text-emerald-700 border border-emerald-200 text-sm px-3 py-1 rounded-full font-bold shadow-sm">+${Math.round(net).toLocaleString()}원 받을 예정</span>`;
                 } else if (net < -0.5) {
-                    badgeHtml = `<span class="bg-rose-100 text-rose-600 border border-rose-200 text-xs px-2.5 py-1 rounded-full font-bold shadow-sm">${Math.round(-net).toLocaleString()}원 보낼 예정</span>`;
+                    badgeHtml = `<span class="bg-rose-100 text-rose-600 border border-rose-200 text-sm px-3 py-1 rounded-full font-bold shadow-sm">${Math.round(-net).toLocaleString()}원 보낼 예정</span>`;
                 } else {
-                    badgeHtml = `<span class="bg-slate-100 text-slate-600 border border-slate-200 text-xs px-2.5 py-1 rounded-full font-bold shadow-sm">정산 완료 (0원)</span>`;
+                    badgeHtml = `<span class="bg-slate-100 text-slate-600 border border-slate-200 text-sm px-3 py-1 rounded-full font-bold shadow-sm">정산 완료 (0원)</span>`;
                 }
 
                 const titleHtml = ent.isCouple
                     ? `<div>
                          <div class="flex items-center gap-1.5">
-                           <span class="text-amber-500 text-sm">👑</span>
-                           <span class="font-extrabold text-slate-800 text-base">${ent.label}</span>
+                           <span class="text-amber-500 text-base">👑</span>
+                           <span class="font-extrabold text-slate-800 text-lg">${ent.label}</span>
                          </div>
-                         <div class="text-[11px] font-bold text-emerald-600 mt-0.5">${ent.subLabel}</div>
+                         <div class="text-sm font-bold text-emerald-600 mt-0.5">${ent.subLabel}</div>
                        </div>`
                     : `<div>
-                         <span class="font-extrabold text-slate-800 text-base">${ent.label}</span>
-                         ${ent.subLabel ? `<div class="text-[11px] font-bold text-slate-500 mt-0.5">${ent.subLabel}</div>` : ''}
+                         <span class="font-extrabold text-slate-800 text-lg">${ent.label}</span>
+                         ${ent.subLabel ? `<div class="text-sm font-bold text-slate-500 mt-0.5">${ent.subLabel}</div>` : ''}
                        </div>`;
 
                 const memberBreakdownHtml = ent.isCouple
-                    ? `<div class="text-[11px] font-bold text-slate-500 text-right mt-1">
+                    ? `<div class="text-xs font-bold text-slate-500 text-right mt-1">
                          (${ent.members.map(m => `${m} ${Math.round(personShareMap[m] || 0).toLocaleString()}원`).join(' + ')})
                        </div>`
                     : '';
@@ -2462,31 +2452,31 @@ const defaultPlacesData = {
                             ${titleHtml}
                             <div class="shrink-0">${badgeHtml}</div>
                         </div>
-                        <div class="text-xs space-y-1.5 text-slate-600 border-t border-slate-100 pt-3">
+                        <div class="text-sm space-y-2 text-slate-600 border-t border-slate-100 pt-3">
                             <div class="flex justify-between items-center">
                                 <span class="font-bold text-slate-500">${ent.isCouple ? '부부 결제 금액:' : '내가 결제한 금액:'}</span>
-                                <span class="font-extrabold text-slate-800 text-sm">${paid.toLocaleString()}원</span>
+                                <span class="font-extrabold text-slate-800 text-base">${paid.toLocaleString()}원</span>
                             </div>
                             <div class="flex justify-between items-center">
                                 <span class="font-bold text-slate-500">${ent.isCouple ? '부부 부담할 몫 (사용 금액):' : '내가 부담할 몫 (사용 금액):'}</span>
-                                <span class="font-extrabold text-slate-800 text-sm">${Math.round(share).toLocaleString()}원</span>
+                                <span class="font-extrabold text-slate-800 text-base">${Math.round(share).toLocaleString()}원</span>
                             </div>
                             ${memberBreakdownHtml}
                         </div>
 
                         ${outList.length > 0 ? `
-                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 text-xs shadow-inner">
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 space-y-2 text-sm shadow-inner mt-2">
                                 <div class="text-rose-600 font-extrabold">총 송금할 금액: ${totalOut.toLocaleString()}원</div>
                                 ${outList.map(o => `<div class="text-slate-600 pl-2 font-medium">👉 <span class="text-slate-800 font-extrabold">${o.to.fullTitle}</span> 님에게: <span class="font-extrabold text-slate-800">${o.amount.toLocaleString()}원</span></div>`).join('')}
                             </div>
                         ` : `
-                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-400 text-center shadow-inner">
+                            <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-400 text-center shadow-inner mt-2">
                                 ${ent.isCouple ? '부부 대표가 송금할 금액: 0원 (보낼 금액 없음)' : '내가 송금할 금액: 0원 (보낼 금액 없음)'}
                             </div>
                         `}
 
                         ${inList.length > 0 ? `
-                            <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 space-y-1.5 text-xs shadow-inner">
+                            <div class="bg-emerald-50 p-3.5 rounded-xl border border-emerald-100 space-y-2 text-sm shadow-inner mt-2">
                                 <div class="text-emerald-700 font-extrabold">받을 상세 내역:</div>
                                 ${inList.map(i => `<div class="text-emerald-800 pl-2 font-medium">👉 <span class="text-emerald-900 font-extrabold">${i.from.fullTitle}</span> 님으로부터: <span class="font-extrabold text-emerald-900">${i.amount.toLocaleString()}원</span></div>`).join('')}
                             </div>
