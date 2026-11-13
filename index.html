@@ -64,13 +64,19 @@
         input, select, textarea { font-size: 14px !important; }
         /* Flatpickr 달력 최상위 노출 */
         .flatpickr-calendar { z-index: 9999 !important; font-family: inherit; }
+
+        /* 체크박스 커스텀 스크롤바 */
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 relative">
 
     <!-- Header -->
     <header class="sticky top-0 z-[60] bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-md">
-        <div class="max-w-[1400px] mx-auto px-3 sm:px-4 py-3 flex flex-row items-center justify-between gap-2">
+        <div class="max-w-[1500px] mx-auto px-3 sm:px-4 py-3 flex flex-row items-center justify-between gap-2">
             <h1 class="text-[17px] sm:text-2xl font-bold flex items-center gap-1.5 sm:gap-2 shrink-0 truncate">
                 <i class="fa-solid fa-plane-departure hidden sm:inline-block"></i>
                 <span class="truncate">오키나와 플래너</span>
@@ -88,32 +94,32 @@
     </header>
 
     <!-- Main Layout -->
-    <main class="max-w-[1400px] mx-auto w-full px-2 sm:px-4 py-4 sm:py-6 flex flex-col md:flex-row gap-4 items-start">
+    <main class="max-w-[1500px] mx-auto w-full px-2 sm:px-4 py-4 sm:py-6 flex flex-col md:flex-row gap-4 items-start">
         
         <!-- 1 & 2. Center Content Wrapper (Tabs + Itinerary) -->
-        <div class="flex-1 min-w-0 flex flex-col gap-3 w-full">
+        <div class="flex-1 min-w-0 flex flex-col md:flex-row gap-3 w-full items-start">
             
-            <!-- 상단 가로 탭 -->
-            <nav id="day-tabs-container" class="w-full sticky z-[35] bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm transition-all overflow-hidden">
-                <div id="day-tabs" class="flex overflow-x-auto gap-1.5 hide-scrollbar w-full items-center px-1"></div>
+            <!-- 탭 (모바일: 상단 가로, 데스크탑: 좌측 세로) -->
+            <nav id="day-tabs-container" class="w-full md:w-[90px] lg:w-[100px] shrink-0 sticky z-[35] bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm transition-all overflow-hidden md:max-h-[calc(100vh-140px)] md:overflow-y-auto hide-scrollbar">
+                <div id="day-tabs" class="flex flex-row md:flex-col overflow-x-auto gap-1.5 hide-scrollbar w-full items-center md:items-stretch px-1 md:px-0"></div>
             </nav>
 
             <!-- 중앙 일정 내용 -->
-            <section class="w-full bg-white rounded-2xl shadow-sm border border-slate-200 relative min-h-[70vh]">
+            <section class="flex-1 min-w-0 w-full bg-white rounded-2xl shadow-sm border border-slate-200 relative min-h-[70vh]">
                 <div id="day-content" class="space-y-4 pt-0 relative pb-6"></div>
             </section>
 
         </div>
 
-        <!-- 3. Right Sidebar (Toggleable Panels: Add Place OR Expense) - 폭 1.2배 확장 (384px / 432px) -->
-        <aside id="right-sidebar" class="w-full md:w-[384px] lg:w-[432px] shrink-0 sticky z-[30] h-[calc(100vh-140px)] flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all">
+        <!-- 3. Right Sidebar (Toggleable Panels: Add Place OR Expense) - 폭 1.2배 확장 (460px / 520px) -->
+        <aside id="right-sidebar" class="w-full md:w-[460px] lg:w-[520px] shrink-0 sticky z-[30] h-[calc(100vh-140px)] flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all">
             
             <!-- 3-A. 장소 추가 패널 -->
             <div id="place-add-panel" class="flex flex-col h-full w-full bg-slate-50">
                 <div class="bg-gradient-to-r from-cyan-600 to-blue-700 px-4 py-3 flex justify-between items-center text-white shrink-0 gap-2">
                     <div class="flex-1 min-w-0">
                         <h3 class="font-bold text-[15px] sm:text-base truncate"><i class="fa-solid fa-map-pin mr-1.5"></i>장소 탐색 및 추가</h3>
-                        <p class="text-[10px] sm:text-[11px] text-cyan-100 mt-0.5 truncate">가운데 선택된 일정에 장소가 추가됩니다.</p>
+                        <p class="text-[10px] sm:text-[11px] text-cyan-100 mt-0.5 truncate">선택된 일정에 장소가 추가됩니다.</p>
                     </div>
                     <div class="flex flex-col gap-1.5 shrink-0">
                         <button onclick="openCategoryMapModal()" id="categoryMapBtn" class="bg-emerald-500 hover:bg-emerald-600 text-white py-1 px-2.5 rounded-md text-[11px] font-bold shadow-sm flex items-center justify-center gap-1 transition min-w-[120px]">
@@ -142,7 +148,8 @@
                             <button onclick="switchCategory('호텔')" id="cat-호텔" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">호텔</button>
                         </div>
                     </div>
-                    <div id="places-container" class="grid grid-cols-1 gap-3 px-4 py-4 relative z-10"></div>
+                    <!-- 장소를 2열로 보여주는 Grid 레이아웃 -->
+                    <div id="places-container" class="grid grid-cols-2 gap-2.5 px-4 py-4 relative z-10"></div>
                 </div>
             </div>
 
@@ -352,18 +359,144 @@
                 <div class="w-full">
                     <h4 class="text-xs font-bold text-slate-500 mb-2"><i class="fa-solid fa-database mr-1"></i>데이터 및 공유 관리</h4>
                     <div class="flex gap-1.5 w-full">
-                        <button onclick="exportBackupData()" class="flex-1 min-w-0 bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-lg font-bold text-[13px] sm:text-xs transition shadow-sm flex flex-col items-center justify-center gap-1">
+                        <button onclick="openBackupModal()" class="flex-1 min-w-0 bg-sky-500 hover:bg-sky-600 text-white py-2 rounded-lg font-bold text-[13px] sm:text-xs transition shadow-sm flex flex-col items-center justify-center gap-1">
                             <i class="fa-solid fa-download"></i> 백업
                         </button>
-                        <label class="flex-1 min-w-0 bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg font-bold text-[13px] sm:text-xs transition shadow-sm flex flex-col items-center justify-center gap-1 cursor-pointer m-0">
+                        <button onclick="openRestoreModal()" class="flex-1 min-w-0 bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg font-bold text-[13px] sm:text-xs transition shadow-sm flex flex-col items-center justify-center gap-1">
                             <i class="fa-solid fa-upload"></i> 복구
-                            <input type="file" accept=".json" onchange="importBackupData(event)" class="hidden">
-                        </label>
+                        </button>
                         <button onclick="shareFromSettings()" class="flex-1 min-w-0 bg-[#FEE500] hover:bg-[#FADA0A] text-[#191919] py-2 rounded-lg font-bold text-[13px] sm:text-xs transition shadow-sm flex flex-col items-center justify-center gap-1">
                             <i class="fa-solid fa-image"></i> 이미지공유
                         </button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 백업 항목 선택 모달 -->
+    <div id="backupModal" class="hidden fixed inset-0 z-[90] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div class="bg-[#0088cc] px-5 py-4 flex justify-between items-center text-white shrink-0">
+                <h3 class="font-bold text-base"><i class="fa-solid fa-download mr-2"></i>백업 항목 선택</h3>
+                <button onclick="closeBackupModal()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-4">
+                <p class="text-sm text-slate-600 mb-2">백업할 항목을 세부적으로 선택하세요. (경비 데이터는 항상 포함됩니다)</p>
+
+                <!-- 기본 설정 -->
+                <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 shadow-sm cursor-pointer hover:bg-slate-100 transition" onclick="toggleCheckbox('backup_meta')">
+                    <label class="flex items-center gap-2 cursor-pointer w-full font-bold text-slate-800 text-[15px]">
+                        <input type="checkbox" id="backup_meta" checked class="w-5 h-5 accent-[#0088cc] rounded pointer-events-none" onclick="event.stopPropagation()">
+                        여행 기간 및 메타 설정 (출발일/귀국일)
+                    </label>
+                </div>
+
+                <!-- 일자별 일정 -->
+                <div class="border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden flex flex-col max-h-[250px]">
+                    <div class="bg-slate-50 px-3 py-2 border-b border-slate-200 flex justify-between items-center shrink-0">
+                        <span class="font-bold text-slate-700 text-sm">일자별 일정 선택</span>
+                        <div class="flex gap-2 text-xs">
+                            <button onclick="checkAllClass('backup-day-chk', true)" class="text-[#0088cc] font-bold">전체선택</button>
+                            <button onclick="checkAllClass('backup-day-chk', false)" class="text-slate-400 font-bold">해제</button>
+                        </div>
+                    </div>
+                    <div class="p-3 space-y-2 overflow-y-auto custom-scrollbar" id="backup-days-container">
+                        <!-- 동적 생성 -->
+                    </div>
+                </div>
+
+                <!-- 지역/분류별 장소 -->
+                <div class="border border-slate-200 rounded-xl bg-white shadow-sm overflow-hidden flex flex-col max-h-[250px]">
+                    <div class="bg-slate-50 px-3 py-2 border-b border-slate-200 flex justify-between items-center shrink-0">
+                        <span class="font-bold text-slate-700 text-sm">지역·분류별 장소(커스텀) 선택</span>
+                        <div class="flex gap-2 text-xs">
+                            <button onclick="checkAllClass('backup-place-chk', true)" class="text-[#0088cc] font-bold">전체선택</button>
+                            <button onclick="checkAllClass('backup-place-chk', false)" class="text-slate-400 font-bold">해제</button>
+                        </div>
+                    </div>
+                    <div class="p-3 space-y-2 overflow-y-auto custom-scrollbar" id="backup-places-container">
+                        <!-- 동적 생성 -->
+                    </div>
+                </div>
+
+            </div>
+            <div class="p-4 bg-white border-t border-slate-100 shrink-0">
+                <button onclick="executeBackup()" class="w-full bg-[#0088cc] hover:bg-[#0077b3] text-white py-3 rounded-xl font-bold text-[15px] transition shadow-md">
+                    선택 항목 백업 파일(.json) 다운로드
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 복구 항목 선택 모달 -->
+    <div id="restoreModal" class="hidden fixed inset-0 z-[90] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div class="bg-amber-500 px-5 py-4 flex justify-between items-center text-white shrink-0">
+                <h3 class="font-bold text-base"><i class="fa-solid fa-upload mr-2"></i>복구할 파일 및 항목 선택</h3>
+                <button onclick="closeRestoreModal()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            
+            <div class="p-5 flex-1 flex flex-col min-h-0">
+                <div class="mb-4 shrink-0">
+                    <label class="block w-full border-2 border-dashed border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-700 text-center py-6 rounded-xl cursor-pointer transition font-bold text-sm">
+                        <i class="fa-solid fa-file-import text-2xl mb-2 block text-amber-500"></i>
+                        여기를 클릭하여 백업 파일(.json) 선택
+                        <input type="file" accept=".json" id="restoreFileInput" class="hidden" onchange="handleRestoreFileSelect(event)">
+                    </label>
+                    <p id="restoreFileName" class="text-xs text-slate-500 text-center mt-2 font-medium break-all"></p>
+                </div>
+
+                <div id="restoreOptionsContainer" class="hidden flex-1 min-h-0 flex flex-col overflow-hidden">
+                    <p class="text-sm text-slate-600 mb-2 shrink-0">파일에서 덮어쓸 항목을 선택하세요.</p>
+                    
+                    <div class="overflow-y-auto custom-scrollbar space-y-4 pr-1 pb-2">
+                        <!-- 기본 설정 -->
+                        <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 shadow-sm cursor-pointer hover:bg-slate-100 transition" onclick="toggleCheckbox('restore_meta')">
+                            <label class="flex items-center gap-2 cursor-pointer w-full font-bold text-slate-800 text-[15px]">
+                                <input type="checkbox" id="restore_meta" checked class="w-5 h-5 accent-amber-500 rounded pointer-events-none" onclick="event.stopPropagation()">
+                                여행 기간 및 메타 설정 복구
+                            </label>
+                        </div>
+                        <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 shadow-sm cursor-pointer hover:bg-slate-100 transition" onclick="toggleCheckbox('restore_expense')">
+                            <label class="flex items-center gap-2 cursor-pointer w-full font-bold text-slate-800 text-[15px]">
+                                <input type="checkbox" id="restore_expense" checked class="w-5 h-5 accent-amber-500 rounded pointer-events-none" onclick="event.stopPropagation()">
+                                경비 정산 데이터 복구
+                            </label>
+                        </div>
+
+                        <!-- 일자별 일정 -->
+                        <div class="border border-slate-200 rounded-xl bg-white shadow-sm flex flex-col">
+                            <div class="bg-slate-50 px-3 py-2 border-b border-slate-200 flex justify-between items-center">
+                                <span class="font-bold text-slate-700 text-sm">일자별 일정 복구</span>
+                                <div class="flex gap-2 text-xs">
+                                    <button onclick="checkAllClass('restore-day-chk', true)" class="text-amber-600 font-bold">전체선택</button>
+                                    <button onclick="checkAllClass('restore-day-chk', false)" class="text-slate-400 font-bold">해제</button>
+                                </div>
+                            </div>
+                            <div class="p-3 space-y-2" id="restore-days-container"></div>
+                        </div>
+
+                        <!-- 지역/분류별 장소 -->
+                        <div class="border border-slate-200 rounded-xl bg-white shadow-sm flex flex-col">
+                            <div class="bg-slate-50 px-3 py-2 border-b border-slate-200 flex justify-between items-center">
+                                <span class="font-bold text-slate-700 text-sm">커스텀 장소 복구</span>
+                                <div class="flex gap-2 text-xs">
+                                    <button onclick="checkAllClass('restore-place-chk', true)" class="text-amber-600 font-bold">전체선택</button>
+                                    <button onclick="checkAllClass('restore-place-chk', false)" class="text-slate-400 font-bold">해제</button>
+                                </div>
+                            </div>
+                            <div class="p-3 space-y-2" id="restore-places-container"></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="p-4 bg-white border-t border-slate-100 shrink-0">
+                <button id="executeRestoreBtn" onclick="executeRestore()" disabled class="w-full bg-slate-300 text-slate-500 py-3 rounded-xl font-bold text-[15px] transition shadow-md cursor-not-allowed">
+                    파일을 먼저 선택해주세요
+                </button>
             </div>
         </div>
     </div>
@@ -375,7 +508,6 @@
                 <h3 id="map-modal-title" class="font-bold text-base"><i class="fa-solid fa-map-location-dot mr-2"></i>지도보기</h3>
                 <button onclick="closeMapModal()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <!-- 하단 텍스트 및 닫기 버튼 영역 삭제, 지도가 영역을 완전히 덮도록 h-full 적용 -->
             <div class="p-4 flex-1 bg-slate-100 flex flex-col min-h-0">
                 <div id="dayMapContainer" class="w-full h-full rounded-xl shadow-inner border border-slate-300 z-10"></div>
             </div>
@@ -389,16 +521,18 @@
                 <h3 id="custom-modal-title" class="font-bold text-base"><i class="fa-solid fa-plus-circle mr-2"></i>새로운 장소 / 호텔 직접 등록</h3>
                 <button onclick="closeAddModal()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <div class="p-5 space-y-4 h-[75vh] sm:h-auto overflow-y-auto">
+            <div class="p-5 space-y-4 h-[75vh] sm:h-auto overflow-y-auto custom-scrollbar">
                 <input type="hidden" id="editingPlaceId" value="">
                 <div>
                     <div class="flex justify-between items-center mb-1">
                         <label class="block text-xs font-bold text-slate-700">장소명 / 숙소명</label>
-                        <button type="button" onclick="fetchCoordsByName()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2 py-0.5 rounded shadow-sm transition flex items-center gap-1">
+                    </div>
+                    <div class="flex gap-2">
+                        <input type="text" id="customPlaceName" placeholder="예: 블루씰 아이스크림" class="flex-1 min-w-0 box-border border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 text-[16px] sm:text-sm">
+                        <button type="button" onclick="fetchCoordsByName()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold px-2 py-0.5 rounded shadow-sm transition flex items-center justify-center gap-1 shrink-0 h-[38px]">
                             <i class="fa-solid fa-location-crosshairs"></i> 위도·경도 불러오기
                         </button>
                     </div>
-                    <input type="text" id="customPlaceName" placeholder="예: 블루씰 아이스크림" class="w-full box-border border border-slate-300 rounded-lg px-3 py-2 outline-none focus:border-indigo-500 text-[16px] sm:text-sm">
                 </div>
                 <div class="grid grid-cols-2 gap-3">
                     <div>
@@ -436,10 +570,12 @@
                 </div>
                 
                 <div class="pt-3 flex gap-2">
+                    <button type="button" onclick="searchPlaceInGoogleMaps()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 px-3 rounded-lg text-sm transition shadow-sm shrink-0 flex items-center justify-center" title="구글 맵 검색">
+                        <i class="fa-solid fa-magnifying-glass mr-1"></i> 구글맵
+                    </button>
                     <button onclick="registerCustomPlace()" id="customAddBtn" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 rounded-lg font-bold text-sm sm:text-base transition shadow-sm">
                         등록하기
                     </button>
-                    <button onclick="closeAddModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2.5 rounded-lg font-bold text-sm sm:text-base transition">닫기</button>
                 </div>
             </div>
         </div>
@@ -710,13 +846,17 @@ const defaultPlacesData = {
                     if(dayTabsContainer) dayTabsContainer.style.top = hHeight + 'px';
                 }
                 
-                let tabsOffset = dayTabsContainer ? dayTabsContainer.offsetHeight : 0;
+                // 데스크탑에서는 탭이 좌측에 있으므로 탭 높이를 상단 여백에 더할 필요가 없음
+                let tabsOffset = 0;
                 let topMargin = window.innerWidth >= 768 ? 16 : 0;
-                let gap = 12;
+                
+                if (window.innerWidth < 768 && dayTabsContainer) {
+                    tabsOffset = dayTabsContainer.offsetHeight + 12; // 모바일에서는 탭 아래 여백 추가
+                }
                 
                 const dayHeaders = document.querySelectorAll('.day-header-sticky');
                 dayHeaders.forEach(el => {
-                    el.style.top = (hHeight + topMargin + tabsOffset + gap) + 'px';
+                    el.style.top = (hHeight + topMargin + tabsOffset) + 'px';
                 });
             }
         }
@@ -825,34 +965,289 @@ const defaultPlacesData = {
 
         function manualSaveData() { saveDataToLocalStorage(); alert('일정이 브라우저에 안전하게 저장되었습니다!'); }
 
-        function exportBackupData() {
-            const backupPayload = { version: "1.0", exportedAt: new Date().toLocaleString(), tripData: tripData, placesData: placesData };
-            const jsonStr = JSON.stringify(backupPayload, null, 2); const blob = new Blob([jsonStr], { type: "application/json" });
-            const url = URL.createObjectURL(blob); const downloadAnchor = document.createElement('a');
-            downloadAnchor.href = url; downloadAnchor.download = `okinawa_trip_backup_${new Date().toISOString().slice(0, 10)}.json`;
-            document.body.appendChild(downloadAnchor); downloadAnchor.click(); document.body.removeChild(downloadAnchor);
-            setTimeout(() => URL.revokeObjectURL(url), 100); closeSettingsModal();
+        // --- 백업 / 복구 관련 로직 ---
+        let backupDataPayload = null;
+        let restoreImportedData = null;
+
+        function openBackupModal() {
+            closeSettingsModal();
+            const daysContainer = document.getElementById('backup-days-container');
+            let daysHtml = '';
+            tripData.days.forEach((d, i) => {
+                daysHtml += `
+                    <label class="flex items-center gap-2 cursor-pointer w-full text-slate-700 text-sm hover:bg-slate-50 p-1 rounded transition">
+                        <input type="checkbox" value="${i}" checked class="backup-day-chk w-4 h-4 accent-[#0088cc] rounded">
+                        <span class="font-bold w-[45px]">Day ${d.dayNum}</span>
+                        <span class="text-xs text-slate-500 font-medium">(${d.date})</span>
+                    </label>
+                `;
+            });
+            daysContainer.innerHTML = daysHtml;
+
+            const placesContainer = document.getElementById('backup-places-container');
+            const regions = [{k:'south', v:'남부'}, {k:'central', v:'중부'}, {k:'north', v:'북부'}];
+            const groups = ['관광지', '식당', '카페', '쇼핑', '액티비티', '호텔'];
+            let placesHtml = '';
+            regions.forEach(r => {
+                groups.forEach(g => {
+                    placesHtml += `
+                        <label class="flex items-center gap-2 cursor-pointer w-full text-slate-700 text-sm hover:bg-slate-50 p-1 rounded transition">
+                            <input type="checkbox" value="${r.k}|${g}" checked class="backup-place-chk w-4 h-4 accent-[#0088cc] rounded">
+                            <span class="font-bold text-slate-600">[${r.v}]</span> ${g}
+                        </label>
+                    `;
+                });
+            });
+            placesContainer.innerHTML = placesHtml;
+
+            document.getElementById('backupModal').classList.remove('hidden');
         }
 
-        function importBackupData(event) {
+        function closeBackupModal() {
+            document.getElementById('backupModal').classList.add('hidden');
+        }
+
+        function checkAllClass(className, isChecked) {
+            document.querySelectorAll('.' + className).forEach(chk => {
+                chk.checked = isChecked;
+            });
+        }
+
+        function executeBackup() {
+            const backupMeta = document.getElementById('backup_meta').checked;
+            const dayChks = document.querySelectorAll('.backup-day-chk:checked');
+            const placeChks = document.querySelectorAll('.backup-place-chk:checked');
+
+            let exportTripData = {
+                startDate: backupMeta ? tripData.startDate : null,
+                endDate: backupMeta ? tripData.endDate : null,
+                activeDay: -1,
+                days: []
+            };
+
+            let selectedDaysIndex = Array.from(dayChks).map(chk => parseInt(chk.value));
+            tripData.days.forEach((d, i) => {
+                if (selectedDaysIndex.includes(i)) {
+                    exportTripData.days.push(JSON.parse(JSON.stringify(d)));
+                } else {
+                    exportTripData.days.push({ dayNum: d.dayNum, date: d.date, events: [], companions: '' });
+                }
+            });
+
+            let exportPlacesData = { south: [], central: [], north: [] };
+            let selectedPlaceKeys = Array.from(placeChks).map(chk => chk.value);
+            
+            ['south', 'central', 'north'].forEach(reg => {
+                if(placesData[reg]) {
+                    placesData[reg].forEach(p => {
+                        if (p.id && p.id.startsWith('custom-')) {
+                            let key = `${reg}|${p.group}`;
+                            if (selectedPlaceKeys.includes(key)) {
+                                exportPlacesData[reg].push(JSON.parse(JSON.stringify(p)));
+                            }
+                        }
+                    });
+                }
+            });
+
+            const expensePayload = {
+                tripTitle: document.getElementById('tripTitleInput') ? document.getElementById('tripTitleInput').value : '',
+                participants: participants,
+                settlementMode: settlementMode,
+                couples: couples,
+                expenses: expenses
+            };
+
+            const finalPayload = {
+                version: "2.0",
+                exportedAt: new Date().toLocaleString(),
+                tripData: exportTripData,
+                placesData: exportPlacesData,
+                expenseData: expensePayload
+            };
+
+            const jsonStr = JSON.stringify(finalPayload, null, 2);
+            const blob = new Blob([jsonStr], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.href = url;
+            downloadAnchor.download = `okinawa_custom_backup_${new Date().toISOString().slice(0, 10)}.json`;
+            document.body.appendChild(downloadAnchor); downloadAnchor.click(); document.body.removeChild(downloadAnchor);
+            setTimeout(() => URL.revokeObjectURL(url), 100);
+            
+            closeBackupModal();
+        }
+
+        function openRestoreModal() {
+            closeSettingsModal();
+            document.getElementById('restoreFileInput').value = '';
+            document.getElementById('restoreFileName').innerText = '';
+            document.getElementById('restoreOptionsContainer').classList.add('hidden');
+            document.getElementById('executeRestoreBtn').disabled = true;
+            document.getElementById('executeRestoreBtn').classList.remove('bg-amber-500', 'hover:bg-amber-600', 'text-white');
+            document.getElementById('executeRestoreBtn').classList.add('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+            document.getElementById('executeRestoreBtn').innerText = '파일을 먼저 선택해주세요';
+            restoreImportedData = null;
+
+            document.getElementById('restoreModal').classList.remove('hidden');
+        }
+
+        function closeRestoreModal() {
+            document.getElementById('restoreModal').classList.add('hidden');
+        }
+
+        function handleRestoreFileSelect(event) {
             const file = event.target.files[0];
             if (!file) return;
+            document.getElementById('restoreFileName').innerText = `선택된 파일: ${file.name}`;
+            
             const reader = new FileReader();
             reader.onload = function(e) {
                 try {
                     const imported = JSON.parse(e.target.result);
-                    if (imported.tripData && imported.placesData) { tripData = imported.tripData; placesData = imported.placesData; } else { tripData = imported; }
-                    saveDataToLocalStorage();
-                    if (tripData.startDate && tripData.endDate) {
-                        if (headerFp) headerFp.setDate([tripData.startDate, tripData.endDate]);
-                        if (settingsFp) settingsFp.setDate([tripData.startDate, tripData.endDate]);
-                    }
-                    generateDaysFromDates(); updateHeaderDateDisplay(); renderPlaces(); renderPlanner();
-                    alert('백업 데이터가 성공적으로 복구되었습니다!'); closeSettingsModal();
-                } catch (err) { alert('파일을 읽는 중 오류가 발생했습니다.'); }
-                event.target.value = ''; 
+                    restoreImportedData = imported;
+                    
+                    renderRestoreOptions(imported);
+
+                    document.getElementById('restoreOptionsContainer').classList.remove('hidden');
+                    const btn = document.getElementById('executeRestoreBtn');
+                    btn.disabled = false;
+                    btn.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+                    btn.classList.add('bg-amber-500', 'hover:bg-amber-600', 'text-white');
+                    btn.innerText = '선택 항목 복구 (현재 데이터 덮어쓰기)';
+
+                } catch (err) {
+                    alert('올바른 백업 파일(.json)이 아닙니다.');
+                    document.getElementById('restoreFileInput').value = '';
+                    document.getElementById('restoreFileName').innerText = '';
+                }
             };
             reader.readAsText(file);
+        }
+
+        function renderRestoreOptions(data) {
+            let tData = data.tripData || data;
+            
+            const daysContainer = document.getElementById('restore-days-container');
+            let daysHtml = '';
+            if (tData.days && tData.days.length > 0) {
+                tData.days.forEach((d, i) => {
+                    let hasEvents = d.events && d.events.length > 0;
+                    daysHtml += `
+                        <label class="flex items-center gap-2 cursor-pointer w-full text-slate-700 text-sm hover:bg-slate-50 p-1 rounded transition">
+                            <input type="checkbox" value="${i}" ${hasEvents ? 'checked' : ''} class="restore-day-chk w-4 h-4 accent-amber-500 rounded">
+                            <span class="font-bold w-[45px]">Day ${d.dayNum}</span>
+                            <span class="text-xs text-slate-500 font-medium">(${d.date}) ${hasEvents ? `<span class="text-amber-600 ml-1">일정 ${d.events.length}개</span>` : '일정 없음'}</span>
+                        </label>
+                    `;
+                });
+            } else {
+                daysHtml = '<div class="text-sm text-slate-400">파일에 일정 데이터가 없습니다.</div>';
+            }
+            daysContainer.innerHTML = daysHtml;
+
+            const placesContainer = document.getElementById('restore-places-container');
+            let pData = data.placesData || {south:[], central:[], north:[]};
+            const regions = [{k:'south', v:'남부'}, {k:'central', v:'중부'}, {k:'north', v:'북부'}];
+            
+            let existingPlaceKeys = {};
+            regions.forEach(r => {
+                if(pData[r.k]) {
+                    pData[r.k].forEach(p => {
+                        if(p.id && p.id.startsWith('custom-')) {
+                            let key = `${r.k}|${p.group}`;
+                            existingPlaceKeys[key] = (existingPlaceKeys[key] || 0) + 1;
+                        }
+                    });
+                }
+            });
+
+            let placesHtml = '';
+            let placeCount = 0;
+            for (const [key, count] of Object.entries(existingPlaceKeys)) {
+                let [reg, grp] = key.split('|');
+                let regName = reg === 'south' ? '남부' : (reg === 'central' ? '중부' : '북부');
+                placesHtml += `
+                    <label class="flex items-center gap-2 cursor-pointer w-full text-slate-700 text-sm hover:bg-slate-50 p-1 rounded transition">
+                        <input type="checkbox" value="${key}" checked class="restore-place-chk w-4 h-4 accent-amber-500 rounded">
+                        <span class="font-bold text-slate-600">[${regName}]</span> ${grp} <span class="text-xs text-amber-600 ml-1">(${count}개)</span>
+                    </label>
+                `;
+                placeCount++;
+            }
+            if (placeCount === 0) {
+                placesHtml = '<div class="text-sm text-slate-400">파일에 커스텀 장소 데이터가 없습니다.</div>';
+            }
+            placesContainer.innerHTML = placesHtml;
+        }
+
+        function toggleCheckbox(id) {
+            const cb = document.getElementById(id);
+            cb.checked = !cb.checked;
+        }
+
+        function executeRestore() {
+            if (!restoreImportedData) return;
+            
+            const restoreMeta = document.getElementById('restore_meta').checked;
+            const restoreExp = document.getElementById('restore_expense').checked;
+            const dayChks = document.querySelectorAll('.restore-day-chk:checked');
+            const placeChks = document.querySelectorAll('.restore-place-chk:checked');
+
+            let impTrip = restoreImportedData.tripData || restoreImportedData;
+            let impPlaces = restoreImportedData.placesData || {south:[], central:[], north:[]};
+            let impExp = restoreImportedData.expenseData || null;
+
+            if (restoreMeta && impTrip.startDate && impTrip.endDate) {
+                tripData.startDate = impTrip.startDate;
+                tripData.endDate = impTrip.endDate;
+                if (headerFp) headerFp.setDate([tripData.startDate, tripData.endDate]);
+                if (settingsFp) settingsFp.setDate([tripData.startDate, tripData.endDate]);
+                updateHeaderDateDisplay();
+            }
+
+            generateDaysFromDates(); 
+
+            let selectedDaysIndex = Array.from(dayChks).map(chk => parseInt(chk.value));
+            selectedDaysIndex.forEach(idx => {
+                if (impTrip.days[idx] && tripData.days[idx]) {
+                    tripData.days[idx].events = JSON.parse(JSON.stringify(impTrip.days[idx].events));
+                    tripData.days[idx].companions = impTrip.days[idx].companions;
+                }
+            });
+
+            let selectedPlaceKeys = Array.from(placeChks).map(chk => chk.value);
+            selectedPlaceKeys.forEach(key => {
+                let [reg, grp] = key.split('|');
+                placesData[reg] = placesData[reg].filter(p => !(p.id.startsWith('custom-') && p.group === grp));
+                if(impPlaces[reg]) {
+                    let newCustoms = impPlaces[reg].filter(p => p.id && p.id.startsWith('custom-') && p.group === grp);
+                    placesData[reg].push(...JSON.parse(JSON.stringify(newCustoms)));
+                }
+            });
+
+            if (restoreExp && impExp) {
+                if (impExp.participants) participants = impExp.participants;
+                if (impExp.expenses) expenses = impExp.expenses;
+                if (impExp.settlementMode) settlementMode = impExp.settlementMode;
+                if (Array.isArray(impExp.couples)) couples = impExp.couples;
+                if (impExp.tripTitle !== undefined) {
+                    const titleInput = document.getElementById('tripTitleInput');
+                    if(titleInput) {
+                        titleInput.value = impExp.tripTitle;
+                        updateTripTitle();
+                    }
+                }
+                autoSaveExpenseAppData();
+                initExpenseApp(); 
+            }
+
+            saveDataToLocalStorage();
+            renderPlaces(); 
+            renderPlanner();
+            
+            alert('선택한 항목의 복구가 완료되었습니다!');
+            closeRestoreModal();
         }
 
         function generateDaysFromDates() {
@@ -911,11 +1306,22 @@ const defaultPlacesData = {
                     alert(`[${nameInput}]의 위치를 찾았습니다!\n위도: ${lat}, 경도: ${lon}`);
                 } else {
                     if (confirm(`자동 검색 결과가 없습니다.\n구글 맵에서 직접 [${nameInput}]의 좌표를 복사하시겠습니까?`)) {
-                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(queryName)}`, '_blank');
+                        searchPlaceInGoogleMaps();
                     }
                 }
             } catch (err) { console.error(err); alert('위치 정보를 불러오는 중 오류가 발생했습니다.'); } 
             finally { btn.innerHTML = originalText; btn.disabled = false; }
+        }
+
+        function searchPlaceInGoogleMaps() {
+            const nameInput = document.getElementById('customPlaceName').value.trim();
+            if (!nameInput) {
+                alert('장소명을 입력해주세요.');
+                document.getElementById('customPlaceName').focus();
+                return;
+            }
+            const queryName = nameInput.includes('오키나와') ? nameInput : `${nameInput} 오키나와`;
+            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(queryName)}`, '_blank');
         }
 
         function switchRegion(region) {
@@ -949,31 +1355,32 @@ const defaultPlacesData = {
 
             let html = '';
             if (filteredPlaces.length === 0) {
-                html = `<div class="col-span-1 text-center py-12 text-slate-400 text-sm">해당 카테고리에 등록된 장소가 없습니다.</div>`;
+                html = `<div class="col-span-2 text-center py-12 text-slate-400 text-sm">해당 카테고리에 등록된 장소가 없습니다.</div>`;
             } else {
                 filteredPlaces.forEach((p, idx) => {
                     let singleMapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' 오키나와')}`;
-                    let numBadge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded font-extrabold mr-1.5 shrink-0 mt-[3px]">${idx + 1}</span>`;
+                    let numBadge = `<span class="bg-emerald-100 text-emerald-800 text-[10px] px-1.5 py-0.5 rounded font-extrabold mr-1.5 shrink-0 mt-[2px]">${idx + 1}</span>`;
                     
                     html += `
-                    <div class="min-w-0 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col p-4 hover:border-cyan-300 transition relative w-full h-full overflow-hidden">
-                        <div class="flex justify-between items-start mb-2 gap-2 w-full min-w-0">
-                            <div class="flex items-start flex-1 min-w-0">
-                                <button onclick="addPlaceFromBrowser('${p.id}')" class="shrink-0 bg-cyan-600 hover:bg-cyan-700 text-white text-xs font-bold py-1 px-2.5 rounded transition shadow-sm mr-2 whitespace-nowrap" title="선택">
-                                    <i class="fa-solid fa-plus"></i> 추가
-                                </button>
-                                <h4 class="font-bold text-sm text-slate-900 leading-tight pt-0.5 break-words flex-1 min-w-0 flex items-start">
-                                    ${numBadge}
-                                    <span class="line-clamp-2">${p.name}</span>
-                                </h4>
-                            </div>
-                            <div class="flex items-center gap-1 shrink-0 ml-1">
+                    <div class="min-w-0 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col p-3 hover:border-cyan-300 transition relative w-full h-full overflow-hidden">
+                        <div class="flex items-start mb-1.5 w-full min-w-0">
+                            ${numBadge}
+                            <h4 class="font-bold text-[13px] sm:text-[14px] text-slate-900 leading-tight break-words flex-1 min-w-0">
+                                <span class="line-clamp-2">${p.name}</span>
+                            </h4>
+                        </div>
+                        <p class="text-[11px] text-slate-500 leading-relaxed break-words line-clamp-2 w-full min-w-0 flex-1 mb-2">${p.desc}</p>
+                        
+                        <div class="mt-auto flex items-center justify-between border-t border-slate-100 pt-2 gap-1 w-full">
+                            <button onclick="addPlaceFromBrowser('${p.id}')" class="shrink-0 bg-cyan-600 hover:bg-cyan-700 text-white text-[11px] font-bold py-1.5 px-2 rounded transition shadow-sm whitespace-nowrap">
+                                <i class="fa-solid fa-plus mr-0.5"></i>추가
+                            </button>
+                            <div class="flex items-center gap-0.5 shrink-0 justify-end">
                                 <button onclick="openEditPlaceModal('${currentRegion}', '${p.id}')" class="text-amber-500 hover:bg-amber-50 p-1.5 rounded transition" title="장소 정보 수정"><i class="fa-solid fa-pen-to-square"></i></button>
                                 <a href="${singleMapUrl}" target="_blank" class="text-blue-500 hover:bg-blue-50 p-1.5 rounded-full transition" title="구글 맵 보기"><i class="fa-solid fa-map-location-dot"></i></a>
                                 <button onclick="removePlaceItem('${p.id}')" class="text-rose-400 hover:text-rose-600 p-1.5 rounded transition" title="장소 삭제"><i class="fa-solid fa-trash-can"></i></button>
                             </div>
                         </div>
-                        <p class="text-xs text-slate-500 leading-relaxed break-words line-clamp-2 w-full min-w-0">${p.desc}</p>
                     </div>
                     `;
                 });
@@ -1056,19 +1463,19 @@ const defaultPlacesData = {
                 let hotelMapQ = (firstEvt.lat && firstEvt.lng) ? `${firstEvt.lat},${firstEvt.lng}` : encodeURIComponent(firstEvt.name + ' 오키나와');
                 const hotelMapUrl = `https://www.google.com/maps/search/?api=1&query=${hotelMapQ}`;
 
-                let hotelDeleteBtn = isAllView ? '' : `<button onclick="removeEvent(${dayIdx}, 0)" class="text-rose-400 hover:bg-rose-50 w-8 h-8 rounded-full flex items-center justify-center transition" title="숙소 삭제"><i class="fa-solid fa-trash-can text-sm sm:text-base"></i></button>`;
-                let memoInputHtml = `<input type="text" value="${firstEvt.memo || ''}" oninput="updateEventMemo(${dayIdx}, 0, this.value)" placeholder="메모 (체크인 시간 등)" ${isAllView ? 'readonly' : ''} class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-[12px] sm:text-[13px] text-slate-700 outline-none ${isAllView ? 'cursor-default' : 'focus:bg-white focus:border-cyan-400'}">`;
+                let hotelDeleteBtn = isAllView ? '' : `<button onclick="removeEvent(${dayIdx}, 0)" class="text-rose-400 hover:bg-rose-50 w-7 h-7 rounded-full flex items-center justify-center transition" title="숙소 삭제"><i class="fa-solid fa-trash-can text-xs sm:text-sm"></i></button>`;
+                let memoInputHtml = `<input type="text" value="${firstEvt.memo || ''}" oninput="updateEventMemo(${dayIdx}, 0, this.value)" placeholder="메모 (체크인 시간 등)" ${isAllView ? 'readonly' : ''} class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-[11px] sm:text-[12px] text-slate-700 outline-none ${isAllView ? 'cursor-default' : 'focus:bg-white focus:border-cyan-400'}">`;
 
                 eventsHtml += `
-                    <div class="px-3 sm:px-4 py-1.5">
-                        <div class="flex flex-col bg-indigo-50/60 border border-indigo-100 rounded-2xl shadow-sm py-3 px-4 gap-2">
+                    <div class="px-3 sm:px-4 py-1">
+                        <div class="flex flex-col bg-indigo-50/60 border border-indigo-100 rounded-xl shadow-sm py-2 px-3 gap-1.5">
                             <div class="flex items-center justify-between w-full">
                                 <div class="flex items-center gap-3 flex-1 min-w-0">
-                                    <span class="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-[11px] shadow-sm shrink-0"><i class="fa-solid fa-bed"></i></span>
-                                    <h4 class="font-bold text-[17px] sm:text-[19px] text-slate-900 break-keep leading-snug line-clamp-2">${firstEvt.name}</h4>
+                                    <span class="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center font-bold text-[10px] shadow-sm shrink-0"><i class="fa-solid fa-bed"></i></span>
+                                    <h4 class="font-bold text-[15px] sm:text-[16px] text-slate-900 break-keep leading-snug line-clamp-2">${firstEvt.name}</h4>
                                 </div>
                                 <div class="flex items-center gap-1.5 shrink-0 pl-2 border-l border-indigo-200/60">
-                                    <a href="${hotelMapUrl}" target="_blank" class="text-blue-500 hover:bg-blue-50 w-8 h-8 rounded-full flex items-center justify-center transition" title="지도보기"><i class="fa-solid fa-map-location-dot text-sm sm:text-base"></i></a>
+                                    <a href="${hotelMapUrl}" target="_blank" class="text-blue-500 hover:bg-blue-50 w-7 h-7 rounded-full flex items-center justify-center transition" title="지도보기"><i class="fa-solid fa-map-location-dot text-xs sm:text-sm"></i></a>
                                     ${hotelDeleteBtn}
                                 </div>
                             </div>
@@ -1078,8 +1485,8 @@ const defaultPlacesData = {
                 `;
             } else {
                 if (!isAllView) {
-                    eventsHtml += `<div class="px-3 sm:px-4 py-2 bg-white">
-                        <button onclick="openTimelineAddModal('hotel', ${dayIdx})" class="w-full bg-slate-50 text-indigo-600 py-2.5 px-2 rounded-xl font-bold text-sm sm:text-base transition border border-dashed border-indigo-300 flex items-center justify-center gap-1.5 shadow-sm hover:bg-indigo-50"><i class="fa-solid fa-bed"></i> Day ${currentDayObj.dayNum} 숙소 추가</button>
+                    eventsHtml += `<div class="px-3 sm:px-4 py-1.5 bg-white">
+                        <button onclick="openTimelineAddModal('hotel', ${dayIdx})" class="w-full bg-slate-50 text-indigo-600 py-2 px-2 rounded-xl font-bold text-[13px] sm:text-[14px] transition border border-dashed border-indigo-300 flex items-center justify-center gap-1.5 shadow-sm hover:bg-indigo-50"><i class="fa-solid fa-bed"></i> Day ${currentDayObj.dayNum} 숙소 추가</button>
                     </div>`;
                 }
             }
@@ -1101,7 +1508,7 @@ const defaultPlacesData = {
                         let travelModeMap = { '운전': 'driving', '대중교통': 'transit', '도보': 'walking', '자전거': 'bicycling' };
                         let routeUrl = `https://www.google.com/maps/dir/?api=1&origin=${prevValidEvent.lat},${prevValidEvent.lng}&destination=${evt.lat},${evt.lng}&travelmode=${travelModeMap[currentTransport]}`;
 
-                        let transportSelectorHtml = `<select onchange="updateEventTransport(${dayIdx}, ${evtIdx}, this.value)" ${isAllView ? 'disabled' : ''} class="bg-white border border-slate-200 rounded-md px-2.5 py-1.5 outline-none text-slate-700 font-normal shadow-sm ${isAllView ? 'cursor-default appearance-none' : 'cursor-pointer hover:border-cyan-400'} text-[13px] sm:text-[13px]">
+                        let transportSelectorHtml = `<select onchange="updateEventTransport(${dayIdx}, ${evtIdx}, this.value)" ${isAllView ? 'disabled' : ''} class="bg-white border border-slate-200 rounded-md px-2 py-1 outline-none text-slate-700 font-normal shadow-sm ${isAllView ? 'cursor-default appearance-none' : 'cursor-pointer hover:border-cyan-400'} text-[11px] sm:text-[12px]">
                                 <option value="운전" ${currentTransport==='운전'?'selected':''}>운전</option>
                                 <option value="대중교통" ${currentTransport==='대중교통'?'selected':''}>대중교통</option>
                                 <option value="도보" ${currentTransport==='도보'?'selected':''}>도보</option>
@@ -1109,14 +1516,14 @@ const defaultPlacesData = {
                             </select>`;
 
                         eventsHtml += `
-                            <div class="my-1.5 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 bg-slate-100/80 mx-3 sm:mx-4 px-4 py-2.5 rounded-xl border border-slate-200/80 text-[13px] sm:text-[14px] text-slate-600 shadow-sm w-[calc(100%-1.5rem)] sm:w-[calc(100%-2rem)]">
+                            <div class="my-1 flex flex-wrap sm:flex-nowrap items-center justify-between gap-2 bg-slate-100/80 mx-3 sm:mx-4 px-3 py-1.5 rounded-lg border border-slate-200/80 text-[11px] sm:text-[12px] text-slate-600 shadow-sm w-[calc(100%-1.5rem)] sm:w-[calc(100%-2rem)]">
                                 <div class="flex items-center gap-2">
                                     ${transportSelectorHtml}
                                 </div>
                                 <div class="flex items-center gap-2 sm:gap-3 shrink-0 font-normal ml-auto sm:ml-0">
                                     <span class="whitespace-nowrap">거리: <strong class="font-normal text-slate-800">${route.distance}</strong></span>
                                     <span class="whitespace-nowrap">소요: <strong class="font-normal text-cyan-600">${route.duration}</strong></span>
-                                    <a href="${routeUrl}" target="_blank" class="ml-1 bg-white border border-blue-200 text-blue-600 px-2 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 font-normal text-[13px] sm:text-[14px]" title="경로 보기"><i class="fa-solid fa-route"></i></a>
+                                    <a href="${routeUrl}" target="_blank" class="ml-1 bg-white border border-blue-200 text-blue-600 px-2 py-1 rounded-md shadow-sm flex items-center gap-1.5 font-normal text-[11px] sm:text-[12px]" title="경로 보기"><i class="fa-solid fa-route"></i></a>
                                 </div>
                             </div>
                         `;
@@ -1124,28 +1531,28 @@ const defaultPlacesData = {
 
                     let displayNum = ''; let isMidHotel = (evt.type === 'hotel' || evt.group === '호텔');
                     if (hasCoords) { displayNum = coordIndex++; prevValidEvent = evt; }
-                    let iconTheme = isMidHotel ? 'bg-indigo-600' : 'bg-cyan-600'; let displayIcon = isMidHotel ? '<i class="fa-solid fa-bed text-[11px]"></i>' : displayNum;
-                    const numCircle = displayNum ? `<span class="w-7 h-7 ${iconTheme} text-white rounded-full flex items-center justify-center font-extrabold text-[12px] sm:text-[13px] shadow-sm shrink-0">${displayIcon}</span>` : `<span class="w-7 h-7 ${iconTheme} text-white rounded-full flex items-center justify-center font-bold text-[10px] shadow-sm shrink-0"><i class="fa-solid fa-location-dot"></i></span>`;
+                    let iconTheme = isMidHotel ? 'bg-indigo-600' : 'bg-cyan-600'; let displayIcon = isMidHotel ? '<i class="fa-solid fa-bed text-[10px]"></i>' : displayNum;
+                    const numCircle = displayNum ? `<span class="w-6 h-6 ${iconTheme} text-white rounded-full flex items-center justify-center font-extrabold text-[11px] sm:text-[12px] shadow-sm shrink-0">${displayIcon}</span>` : `<span class="w-6 h-6 ${iconTheme} text-white rounded-full flex items-center justify-center font-bold text-[10px] shadow-sm shrink-0"><i class="fa-solid fa-location-dot"></i></span>`;
                     
                     let singleMapUrl = `https://www.google.com/maps/search/?api=1&query=${(evt.lat && evt.lng) ? evt.lat+','+evt.lng : encodeURIComponent(evt.name + ' 오키나와')}`;
                     
-                    let moveUpBtn = `<button onclick="moveEvent(${dayIdx}, ${evtIdx}, -1)" class="w-full h-1/2 bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition border-b border-slate-200" title="위로"><i class="fa-solid fa-chevron-up text-xs"></i></button>`;
-                    let moveDownBtn = `<button onclick="moveEvent(${dayIdx}, ${evtIdx}, 1)" class="w-full h-1/2 bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition" title="아래로"><i class="fa-solid fa-chevron-down text-xs"></i></button>`;
-                    let reorderBoxHtml = isAllView ? '' : `<div class="flex flex-col w-7 h-[38px] bg-slate-50 rounded border border-slate-200 overflow-hidden shrink-0 shadow-inner ml-2">${moveUpBtn}${moveDownBtn}</div>`;
-                    let deleteBtnHtml = isAllView ? '' : `<button onclick="removeEvent(${dayIdx}, ${evtIdx})" class="text-rose-400 hover:bg-rose-50 w-8 h-8 rounded-full flex items-center justify-center transition" title="삭제"><i class="fa-solid fa-trash-can text-sm sm:text-base"></i></button>`;
+                    let moveUpBtn = `<button onclick="moveEvent(${dayIdx}, ${evtIdx}, -1)" class="w-full h-1/2 bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition border-b border-slate-200" title="위로"><i class="fa-solid fa-chevron-up text-[10px]"></i></button>`;
+                    let moveDownBtn = `<button onclick="moveEvent(${dayIdx}, ${evtIdx}, 1)" class="w-full h-1/2 bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition" title="아래로"><i class="fa-solid fa-chevron-down text-[10px]"></i></button>`;
+                    let reorderBoxHtml = isAllView ? '' : `<div class="flex flex-col w-6 h-[32px] bg-slate-50 rounded border border-slate-200 overflow-hidden shrink-0 shadow-inner ml-2">${moveUpBtn}${moveDownBtn}</div>`;
+                    let deleteBtnHtml = isAllView ? '' : `<button onclick="removeEvent(${dayIdx}, ${evtIdx})" class="text-rose-400 hover:bg-rose-50 w-7 h-7 rounded-full flex items-center justify-center transition" title="삭제"><i class="fa-solid fa-trash-can text-xs sm:text-sm"></i></button>`;
 
-                    let memoInputHtml = `<input type="text" value="${evt.memo || ''}" oninput="updateEventMemo(${dayIdx}, ${evtIdx}, this.value)" placeholder="메모 (주차, 입장료 등)" ${isAllView ? 'readonly' : ''} class="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-[12px] sm:text-[13px] text-slate-700 outline-none ${isAllView ? 'cursor-default' : 'focus:bg-white focus:border-cyan-400'}">`;
+                    let memoInputHtml = `<input type="text" value="${evt.memo || ''}" oninput="updateEventMemo(${dayIdx}, ${evtIdx}, this.value)" placeholder="메모 (주차, 입장료 등)" ${isAllView ? 'readonly' : ''} class="w-full bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1 text-[11px] sm:text-[12px] text-slate-700 outline-none ${isAllView ? 'cursor-default' : 'focus:bg-white focus:border-cyan-400'}">`;
 
                     eventsHtml += `
-                        <div class="px-3 sm:px-4 py-1.5">
-                            <div class="flex flex-col bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden py-3 px-4 gap-2">
+                        <div class="px-3 sm:px-4 py-1">
+                            <div class="flex flex-col bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden py-2 px-3 gap-1.5">
                                 <div class="flex items-center justify-between w-full">
                                     <div class="flex items-center gap-3 flex-1 min-w-0">
                                         ${numCircle}
-                                        <h4 class="font-bold text-[17px] sm:text-[19px] text-slate-900 break-keep leading-snug line-clamp-2">${evt.name}</h4>
+                                        <h4 class="font-bold text-[15px] sm:text-[16px] text-slate-900 break-keep leading-snug line-clamp-2">${evt.name}</h4>
                                     </div>
                                     <div class="flex items-center gap-1.5 shrink-0 pl-2 border-l border-slate-100">
-                                        <a href="${singleMapUrl}" target="_blank" class="text-blue-500 hover:bg-blue-50 w-8 h-8 rounded-full flex items-center justify-center transition" title="지도보기"><i class="fa-solid fa-map-location-dot text-sm sm:text-base"></i></a>
+                                        <a href="${singleMapUrl}" target="_blank" class="text-blue-500 hover:bg-blue-50 w-7 h-7 rounded-full flex items-center justify-center transition" title="지도보기"><i class="fa-solid fa-map-location-dot text-xs sm:text-sm"></i></a>
                                         ${deleteBtnHtml}
                                     </div>
                                 </div>
@@ -1162,7 +1569,7 @@ const defaultPlacesData = {
 
                 if (!isAllView) {
                     eventsHtml += `<div class="px-3 sm:px-4 py-2 bg-white">
-                        <button onclick="openTimelineAddModal('place', ${dayIdx})" class="w-full bg-slate-50 text-slate-600 py-3 px-2 rounded-xl font-bold text-sm sm:text-base transition border border-dashed border-slate-300 flex items-center justify-center gap-1.5 shadow-sm hover:bg-slate-100"><i class="fa-solid fa-arrow-pointer"></i> <span class="tracking-tight">우측에서 장소 찾아 추가하기</span></button>
+                        <button onclick="openTimelineAddModal('place', ${dayIdx})" class="w-full bg-slate-50 text-slate-600 py-2.5 px-2 rounded-xl font-bold text-[13px] sm:text-[14px] transition border border-dashed border-slate-300 flex items-center justify-center gap-1.5 shadow-sm hover:bg-slate-100"><i class="fa-solid fa-arrow-pointer"></i> <span class="tracking-tight">우측에서 장소 찾아 추가하기</span></button>
                     </div>`;
                 }
             }
@@ -1215,10 +1622,10 @@ const defaultPlacesData = {
         function renderPlanner() {
             const days = tripData.days || [];
             
-            let tabsHtml = `<button onclick="setActiveDay(-1)" class="w-auto shrink-0 px-3.5 py-2 rounded-lg text-[13px] md:text-sm font-bold transition whitespace-nowrap border ${tripData.activeDay === -1 ? 'bg-cyan-600 border-cyan-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50'}">전체일정</button>`;
+            let tabsHtml = `<button onclick="setActiveDay(-1)" class="w-auto md:w-full shrink-0 px-3.5 py-2 md:px-2 md:py-3 rounded-lg text-[13px] md:text-sm font-bold transition text-center whitespace-nowrap border ${tripData.activeDay === -1 ? 'bg-cyan-600 border-cyan-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50'}">전체일정</button>`;
             
             tabsHtml += days.map((d, idx) => `
-                <button onclick="setActiveDay(${idx})" class="w-auto shrink-0 px-3.5 py-2 rounded-lg text-[13px] md:text-sm font-bold transition whitespace-nowrap border ${idx === tripData.activeDay ? 'bg-cyan-50 border-cyan-400 text-cyan-800 shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50'}">
+                <button onclick="setActiveDay(${idx})" class="w-auto md:w-full shrink-0 px-3.5 py-2 md:px-2 md:py-3 rounded-lg text-[13px] md:text-[15px] font-bold transition text-center whitespace-nowrap border ${idx === tripData.activeDay ? 'bg-cyan-50 border-cyan-400 text-cyan-800 shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50'}">
                     Day ${d.dayNum}
                 </button>
             `).join('');
@@ -1258,9 +1665,6 @@ const defaultPlacesData = {
                             .addTo(map)
                             .bindPopup('<div style="font-size:12px; font-weight:bold; color:#1e40af; text-align:center;">나의 현재 위치</div>');
                             
-                        // 현재 위치를 bounds에 포함시켜서 줌을 맞출 경우(거리가 멀면 너무 축소될 수 있음)
-                        // boundsArray.push([lat, lng]); 
-                        // map.fitBounds(boundsArray, { padding: [50, 50] });
                     },
                     function(error) {
                         console.warn("현재 위치를 가져올 수 없습니다.", error);
@@ -1422,8 +1826,8 @@ const defaultPlacesData = {
                     alert('현재 브라우저에서는 여러 장 동시 공유를 지원하지 않아, 각 일정 이미지를 기기에 다운로드합니다.');
                     for (let file of imageFiles) {
                         let url = URL.createObjectURL(file);
-                        let 대 = document.createElement('a'); 대.href = url; 대.download = file.name;
-                        document.body.appendChild(대); 대.click(); document.body.removeChild(대); URL.revokeObjectURL(url);
+                        let a = document.createElement('a'); a.href = url; a.download = file.name;
+                        document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(url);
                         await new Promise(r => setTimeout(r, 400));
                     }
                 }
