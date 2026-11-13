@@ -81,56 +81,217 @@
             </div>
         </aside>
 
-        <!-- 2. Center Content (Itinerary) - overflow-hidden 제거하여 sticky 정상 작동하게 함 -->
+        <!-- 2. Center Content (Itinerary) -->
         <section class="flex-1 min-w-0 bg-white rounded-2xl shadow-sm border border-slate-200 relative min-h-[70vh]">
             <div id="day-content" class="space-y-4 pt-0 relative pb-6"></div>
         </section>
 
-        <!-- 3. Right Sidebar (Persistent Add Place Panel) -->
+        <!-- 3. Right Sidebar (Toggleable Panels: Add Place OR Expense) -->
         <aside id="right-sidebar" class="w-full md:w-[320px] lg:w-[360px] shrink-0 sticky z-[30] h-[calc(100vh-140px)] flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden transition-all">
-            <!-- Right Panel Header -->
-            <div class="bg-gradient-to-r from-cyan-600 to-blue-700 px-5 py-3.5 flex justify-between items-center text-white shrink-0">
-                <div>
-                    <h3 class="font-bold text-base"><i class="fa-solid fa-map-pin mr-2"></i>장소 탐색 및 추가</h3>
-                    <p class="text-[11px] text-cyan-100 mt-0.5">가운데 선택된 일정에 장소가 추가됩니다.</p>
+            
+            <!-- 3-A. 장소 추가 패널 (기본 표시) -->
+            <div id="place-add-panel" class="flex flex-col h-full w-full bg-slate-50">
+                <!-- Right Panel Header -->
+                <div class="bg-gradient-to-r from-cyan-600 to-blue-700 px-5 py-3.5 flex justify-between items-center text-white shrink-0">
+                    <div>
+                        <h3 class="font-bold text-base"><i class="fa-solid fa-map-pin mr-2"></i>장소 탐색 및 추가</h3>
+                        <p class="text-[11px] text-cyan-100 mt-0.5">가운데 선택된 일정에 장소가 추가됩니다.</p>
+                    </div>
+                </div>
+
+                <!-- Panel Scroll Content -->
+                <div class="overflow-y-auto flex-1 hide-scrollbar relative flex flex-col">
+                    <div class="sticky top-0 z-20 bg-slate-50 px-4 py-4 border-b border-slate-200 shadow-sm space-y-3">
+                        <div class="flex bg-slate-200/70 p-1 rounded-xl">
+                            <button onclick="switchRegion('south')" id="btn-south" class="flex-1 py-2 rounded-lg text-[13px] font-bold transition bg-white text-cyan-700 shadow-sm">남부</button>
+                            <button onclick="switchRegion('central')" id="btn-central" class="flex-1 py-2 rounded-lg text-[13px] font-bold transition text-slate-500 hover:text-slate-800">중부</button>
+                            <button onclick="switchRegion('north')" id="btn-north" class="flex-1 py-2 rounded-lg text-[13px] font-bold transition text-slate-500 hover:text-slate-800">북부</button>
+                        </div>
+
+                        <div class="flex flex-wrap gap-1.5">
+                            <button onclick="switchCategory('관광지')" id="cat-관광지" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-cyan-600 text-white shadow-sm">관광지</button>
+                            <button onclick="switchCategory('식당')" id="cat-식당" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">식당</button>
+                            <button onclick="switchCategory('카페')" id="cat-카페" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">카페</button>
+                            <button onclick="switchCategory('쇼핑')" id="cat-쇼핑" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">쇼핑</button>
+                            <button onclick="switchCategory('액티비티')" id="cat-액티비티" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">액티비티</button>
+                            <button onclick="switchCategory('호텔')" id="cat-호텔" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">호텔</button>
+                        </div>
+                        
+                        <div class="flex gap-2 w-full">
+                            <button onclick="openCategoryMapModal()" id="categoryMapBtn" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-lg text-[12px] sm:text-[13px] font-bold shadow-sm flex items-center justify-center gap-1.5 transition px-1">
+                                <i class="fa-solid fa-map-location-dot"></i> 분류별 지도
+                            </button>
+                            <button onclick="openAddModal()" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-lg text-[12px] sm:text-[13px] font-bold shadow-sm flex items-center justify-center gap-1.5 transition px-1">
+                                <i class="fa-solid fa-plus-circle"></i> 장소 직접 입력
+                            </button>
+                        </div>
+                    </div>
+                    <div id="places-container" class="grid grid-cols-1 gap-3 px-4 py-4 relative z-10"></div>
                 </div>
             </div>
 
-            <!-- Panel Scroll Content -->
-            <div class="overflow-y-auto bg-slate-50 flex-1 hide-scrollbar relative flex flex-col">
-                <!-- 지역 탭 & 카테고리 탭 -->
-                <div class="sticky top-0 z-20 bg-slate-50 px-4 py-4 border-b border-slate-200 shadow-sm space-y-3">
-                    <div class="flex bg-slate-200/70 p-1 rounded-xl">
-                        <button onclick="switchRegion('south')" id="btn-south" class="flex-1 py-2 rounded-lg text-[13px] font-bold transition bg-white text-cyan-700 shadow-sm">남부</button>
-                        <button onclick="switchRegion('central')" id="btn-central" class="flex-1 py-2 rounded-lg text-[13px] font-bold transition text-slate-500 hover:text-slate-800">중부</button>
-                        <button onclick="switchRegion('north')" id="btn-north" class="flex-1 py-2 rounded-lg text-[13px] font-bold transition text-slate-500 hover:text-slate-800">북부</button>
+            <!-- 3-B. 경비 정산 패널 (토글 시 표시) -->
+            <div id="expense-panel" class="hidden flex-col h-full w-full bg-slate-50">
+                <!-- Expense Header -->
+                <div class="bg-gradient-to-r from-emerald-600 to-teal-700 px-5 py-3.5 flex justify-between items-center text-white shrink-0">
+                    <div>
+                        <h3 id="expenseHeaderTitle" class="font-bold text-base"><i class="fa-solid fa-won-sign mr-2"></i>여행 정산 & 송금 계산기</h3>
+                        <p class="text-[11px] text-emerald-100 mt-0.5">개인별 · 부부별 맞춤형 지출 정산 시스템</p>
                     </div>
+                    <button onclick="toggleRightPanel()" class="text-white/80 hover:text-white" title="장소 추가로 돌아가기"><i class="fa-solid fa-xmark text-xl"></i></button>
+                </div>
 
-                    <div class="flex flex-wrap gap-1.5">
-                        <button onclick="switchCategory('관광지')" id="cat-관광지" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-cyan-600 text-white shadow-sm">관광지</button>
-                        <button onclick="switchCategory('식당')" id="cat-식당" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">식당</button>
-                        <button onclick="switchCategory('카페')" id="cat-카페" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">카페</button>
-                        <button onclick="switchCategory('쇼핑')" id="cat-쇼핑" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">쇼핑</button>
-                        <button onclick="switchCategory('액티비티')" id="cat-액티비티" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">액티비티</button>
-                        <button onclick="switchCategory('호텔')" id="cat-호텔" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">호텔</button>
-                    </div>
+                <!-- Expense Scroll Content -->
+                <div class="overflow-y-auto flex-1 hide-scrollbar p-4 space-y-4">
                     
-                    <!-- 지도보기 및 장소 직접 입력 버튼 분할 (요청사항 반영) -->
-                    <div class="flex gap-2 w-full">
-                        <button onclick="openCategoryMapModal()" id="categoryMapBtn" class="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white py-2 rounded-lg text-[12px] sm:text-[13px] font-bold shadow-sm flex items-center justify-center gap-1.5 transition px-1">
-                            <i class="fa-solid fa-map-location-dot"></i> 분류별 지도
-                        </button>
-                        <button onclick="openAddModal()" class="flex-1 bg-indigo-500 hover:bg-indigo-600 text-white py-2 rounded-lg text-[12px] sm:text-[13px] font-bold shadow-sm flex items-center justify-center gap-1.5 transition px-1">
-                            <i class="fa-solid fa-plus-circle"></i> 장소 직접 입력
-                        </button>
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+                        <div>
+                            <label class="text-xs text-slate-500 font-bold mb-1 block">여행 장소 / 제목</label>
+                            <div class="flex gap-2 items-center">
+                                <input type="text" id="tripTitleInput" placeholder="예: 오키나와 우정 여행" oninput="updateTripTitle()"
+                                    class="flex-1 min-w-0 bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:border-emerald-500 text-sm font-medium">
+                                <button onclick="saveExpenseAppData()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm shrink-0 h-[38px]">
+                                    <span>💾</span> 저장
+                                </button>
+                                <button onclick="shareAsImage()" class="bg-teal-600 hover:bg-teal-700 text-white font-bold px-3 py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-sm shrink-0 h-[38px]">
+                                    <span>💬</span> 공유
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-between items-center border-t border-slate-100 pt-3">
+                            <h3 class="text-sm font-bold text-slate-800">참여자 관리</h3>
+                            <span id="participantCount" class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">4명</span>
+                        </div>
+                        <div class="flex gap-2">
+                            <input type="text" id="newParticipantName" placeholder="이름 (예: 찬팅)" 
+                                class="w-[60%] bg-slate-50 border border-slate-300 rounded-xl px-3 py-1.5 text-slate-800 focus:outline-none focus:border-emerald-500 text-sm font-medium">
+                            <button onclick="addParticipant()" class="w-[40%] bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 px-3 rounded-xl text-xs font-bold transition shadow-sm">
+                                참여자 추가
+                            </button>
+                        </div>
+                        <div id="participantTags" class="flex flex-wrap gap-1.5 pt-1"></div>
+
+                        <!-- 정산 방식 선택 -->
+                        <div class="border-t border-slate-100 pt-3 space-y-2.5">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs font-bold text-slate-800">정산 방식 선택</span>
+                                <div class="inline-flex bg-slate-100 p-1 rounded-xl border border-slate-200">
+                                    <button type="button" id="modeIndividualBtn" onclick="setSettlementMode('individual')"
+                                        class="px-3 py-1 rounded-lg text-xs font-bold transition bg-white text-emerald-700 shadow-sm border border-slate-200">
+                                        👤 개인별 정산
+                                    </button>
+                                    <button type="button" id="modeCoupleBtn" onclick="setSettlementMode('couple')"
+                                        class="px-3 py-1 rounded-lg text-xs font-bold transition text-slate-500 hover:text-slate-700">
+                                        💑 부부별 정산
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- 부부 그룹 설정 영역 -->
+                            <div id="coupleSetupSection" class="hidden bg-slate-50 border border-emerald-200 rounded-xl p-3 space-y-2.5 shadow-inner">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-xs font-extrabold text-emerald-700">💑 부부 묶기 및 대표자 지정</span>
+                                    <span class="text-[10px] font-bold text-slate-400">👑 클릭 시 대표 변경</span>
+                                </div>
+
+                                <div id="couplePairCreator" class="space-y-1.5">
+                                    <div class="grid grid-cols-2 gap-1.5">
+                                        <select id="coupleMember1" class="w-full min-w-0 bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800 text-sm font-medium outline-none focus:border-emerald-500"></select>
+                                        <select id="coupleMember2" class="w-full min-w-0 bg-white border border-slate-300 rounded-lg px-2 py-1.5 text-slate-800 text-sm font-medium outline-none focus:border-emerald-500"></select>
+                                    </div>
+                                    <button type="button" onclick="addCouplePair()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-lg text-xs font-bold transition shadow-sm">
+                                        + 선택한 두 명을 부부로 묶기
+                                    </button>
+                                </div>
+                                <div id="coupleListContainer" class="space-y-1.5 pt-1"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Add Expense Form -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+                        <h3 class="text-sm font-bold text-slate-800">지출 입력</h3>
+                        <div class="space-y-2.5">
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 mb-1 block">지출 항목명</label>
+                                <input type="text" id="expenseTitle" placeholder="예: 숙박, 식사, 택시" 
+                                    class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-emerald-500">
+                            </div>
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500 mb-1 block">금액 (원)</label>
+                                    <input type="number" id="expenseAmount" placeholder="0" 
+                                        class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 font-bold focus:outline-none focus:border-emerald-500">
+                                </div>
+                                <div>
+                                    <label class="text-xs font-bold text-slate-500 mb-1 block">결제자</label>
+                                    <select id="expensePayer" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 font-medium focus:outline-none focus:border-emerald-500"></select>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between items-center mb-1">
+                                    <label class="text-xs font-bold text-slate-500 block">지출 참여 인원 (체크된 사람 1/N)</label>
+                                </div>
+                                <div id="expenseParticipants" class="flex flex-wrap gap-2 pt-1 bg-slate-50 p-2.5 rounded-xl border border-slate-200"></div>
+                            </div>
+                            <button onclick="addExpense()" class="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-2.5 rounded-xl text-sm transition shadow-sm">
+                                지출 내역 추가
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Expense List -->
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+                        <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleExpenseList()">
+                            <h3 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                                지출 내역 목록 <span class="text-[10px] text-emerald-600 font-normal">(클릭하여 펼치기/접기)</span>
+                            </h3>
+                            <span id="totalExpenseSummary" class="text-xs text-emerald-700 font-extrabold">총 지출: 0원</span>
+                        </div>
+                        <div id="expenseListContainer" class="space-y-2 hidden">
+                            <p class="text-xs text-slate-400 text-center py-4 font-medium">등록된 지출 내역이 없습니다.</p>
+                        </div>
+                    </div>
+
+                    <!-- Calculate Button -->
+                    <button onclick="calculateSettlement()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-2xl text-sm transition shadow-sm flex items-center justify-center gap-2">
+                        <span>🧮</span> 정산하기 (자동 계산)
+                    </button>
+
+                    <!-- Settlement Results -->
+                    <div id="settlementResultSection" class="space-y-4 hidden">
+                        <div id="captureArea" class="bg-slate-100 p-3 space-y-4 rounded-2xl border border-slate-200">
+                            
+                            <div class="border-b border-slate-300 pb-3 flex justify-between items-center">
+                                <div>
+                                    <h3 id="summaryMainTitle" class="text-base font-extrabold text-slate-800">여행 정산 및 송금 요약</h3>
+                                    <p id="summarySubTitle" class="text-[11px] font-bold text-slate-500">지출 내역 및 개인별 정산 결과</p>
+                                </div>
+                                <span id="summaryModeBadge" class="text-xs bg-emerald-200 text-emerald-800 px-2.5 py-1 rounded-full font-bold shadow-sm">개인별 정산</span>
+                            </div>
+
+                            <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
+                                <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleSummaryExpenseList()">
+                                    <h4 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                                        전체 지출 내역 <span class="text-[10px] text-emerald-600 font-normal">(클릭하여 펼치기/접기)</span>
+                                    </h4>
+                                    <span id="summaryTotalExpense" class="text-xs text-emerald-700 font-extrabold">총 지출: 0원</span>
+                                </div>
+                                <div id="summaryExpenseListContainer" class="space-y-2 hidden"></div>
+                            </div>
+
+                            <div class="space-y-3">
+                                <h4 id="summaryCardsHeading" class="text-sm font-extrabold text-slate-800 pt-1 px-1">개인별 정산 카드</h4>
+                                <div id="personalSummaries" class="space-y-3"></div>
+                            </div>
+
+                        </div>
                     </div>
                 </div>
-
-                <!-- 장소 카드 목록 -->
-                <div id="places-container" class="grid grid-cols-1 gap-3 px-4 py-4 relative z-10"></div>
             </div>
-        </aside>
 
+        </aside>
     </main>
 
     <!-- 설정 모달 -->
@@ -268,175 +429,6 @@
                         등록하기
                     </button>
                     <button onclick="closeAddModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2.5 rounded-lg font-bold text-sm sm:text-base transition">닫기</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 경비 정산 및 송금 계산기 모달 (기존과 동일하므로 전체 생략 없이 포함) -->
-    <div id="expenseModal" class="hidden fixed inset-0 z-[110] bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
-        <div class="bg-slate-950 text-slate-100 rounded-2xl w-full max-w-md shadow-2xl border border-slate-800 flex flex-col max-h-[92vh] overflow-hidden my-auto">
-            
-            <div class="sticky top-0 z-25 bg-slate-950/95 backdrop-blur-md px-4 py-3.5 border-b border-slate-900 flex justify-between items-center shrink-0">
-                <div class="space-y-0.5">
-                    <h2 id="expenseHeaderTitle" class="text-lg font-bold bg-gradient-to-r from-indigo-400 to-cyan-400 bg-clip-text text-transparent">
-                        여행 정산 & 송금 계산기
-                    </h2>
-                    <p class="text-[11px] text-slate-400">개인별 · 부부별 맞춤형 지출 정산 시스템</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="closeExpenseModal()" class="text-slate-400 hover:text-white p-1.5 transition">
-                        <i class="fa-solid fa-xmark text-xl"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- 모달 내부 스크롤 콘텐츠 영역 -->
-            <div class="p-4 space-y-5 overflow-y-auto flex-1 hide-scrollbar">
-                
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-                    <div>
-                        <label class="text-xs text-slate-400 mb-1 block">여행 장소 / 제목</label>
-                        <div class="flex gap-2 items-center">
-                            <input type="text" id="tripTitleInput" placeholder="예: 오키나와 우정 여행" oninput="updateTripTitle()"
-                                class="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500">
-                            <button onclick="saveExpenseAppData()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-3 py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-md shadow-indigo-600/20 shrink-0 h-[38px]">
-                                <span>💾</span> 저장
-                            </button>
-                            <button onclick="shareAsImage()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-semibold px-3 py-2 rounded-xl text-xs flex items-center justify-center gap-1 transition shadow-md shadow-indigo-600/20 shrink-0 h-[38px]">
-                                <span>💬</span> 공유
-                            </button>
-                        </div>
-                    </div>
-
-                    <div class="flex justify-between items-center border-t border-slate-800/80 pt-3">
-                        <h3 class="text-sm font-semibold text-slate-300">참여자 관리</h3>
-                        <span id="participantCount" class="text-xs bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-full font-medium">4명</span>
-                    </div>
-                    <div class="flex gap-2">
-                        <input type="text" id="newParticipantName" placeholder="이름 입력 (예: 찬팅)" 
-                            class="w-[62%] bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-slate-100 focus:outline-none focus:border-indigo-500 text-sm">
-                        <button onclick="addParticipant()" class="w-[38%] bg-indigo-600 hover:bg-indigo-500 text-white py-1.5 px-3 rounded-xl text-xs font-semibold transition shadow-md shadow-indigo-600/20">
-                            참여자 추가
-                        </button>
-                    </div>
-                    <div id="participantTags" class="flex flex-wrap gap-1.5 pt-1"></div>
-
-                    <!-- 정산 방식 선택 -->
-                    <div class="border-t border-slate-800/80 pt-3 space-y-2.5">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-semibold text-slate-300">정산 방식 선택</span>
-                            <div class="inline-flex bg-slate-950 p-1 rounded-xl border border-slate-800">
-                                <button type="button" id="modeIndividualBtn" onclick="setSettlementMode('individual')"
-                                    class="px-3 py-1 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow-sm">
-                                    👤 개인별 정산
-                                </button>
-                                <button type="button" id="modeCoupleBtn" onclick="setSettlementMode('couple')"
-                                    class="px-3 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-slate-200">
-                                    💑 부부별 정산
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- 부부 그룹 설정 영역 -->
-                        <div id="coupleSetupSection" class="hidden bg-slate-950 border border-indigo-500/30 rounded-xl p-3 space-y-2.5">
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs font-bold text-indigo-300">💑 부부 묶기 및 대표자 지정</span>
-                                <span class="text-[10px] text-slate-400">👑 클릭 시 대표 변경</span>
-                            </div>
-
-                            <div id="couplePairCreator" class="space-y-1.5">
-                                <div class="grid grid-cols-2 gap-1.5">
-                                    <select id="coupleMember1" class="w-full min-w-0 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-slate-200 outline-none focus:border-indigo-500"></select>
-                                    <select id="coupleMember2" class="w-full min-w-0 bg-slate-900 border border-slate-800 rounded-lg px-2 py-1.5 text-slate-200 outline-none focus:border-indigo-500"></select>
-                                </div>
-                                <button type="button" onclick="addCouplePair()" class="w-full bg-indigo-600/90 hover:bg-indigo-500 text-white py-1.5 rounded-lg text-xs font-semibold transition shadow-sm">
-                                    + 선택한 두 명을 부부로 묶기
-                                </button>
-                            </div>
-                            <div id="coupleListContainer" class="space-y-1.5 pt-1"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add Expense Form -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-                    <h3 class="text-sm font-semibold text-slate-300">지출 입력</h3>
-                    <div class="space-y-2.5">
-                        <div>
-                            <label class="text-xs text-slate-400 mb-1 block">지출 항목명</label>
-                            <input type="text" id="expenseTitle" placeholder="예: 숙박, 식사, 택시" 
-                                class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500">
-                        </div>
-                        <div class="grid grid-cols-2 gap-2">
-                            <div>
-                                <label class="text-xs text-slate-400 mb-1 block">금액 (원)</label>
-                                <input type="number" id="expenseAmount" placeholder="0" 
-                                    class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500">
-                            </div>
-                            <div>
-                                <label class="text-xs text-slate-400 mb-1 block">결제자</label>
-                                <select id="expensePayer" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-100 focus:outline-none focus:border-indigo-500"></select>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between items-center mb-1">
-                                <label class="text-xs text-slate-400 block">지출 참여 인원 (체크된 사람 수만큼 1/N 분담)</label>
-                            </div>
-                            <div id="expenseParticipants" class="flex flex-wrap gap-2 pt-1 bg-slate-950 p-2.5 rounded-xl border border-slate-800"></div>
-                        </div>
-                        <button onclick="addExpense()" class="w-full bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-medium py-2.5 rounded-xl text-sm transition shadow-lg shadow-indigo-500/20">
-                            지출 내역 추가
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Expense List -->
-                <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-                    <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleExpenseList()">
-                        <h3 class="text-sm font-semibold text-slate-300 flex items-center gap-1.5">
-                            지출 내역 목록 <span class="text-[10px] text-indigo-400 font-normal">(클릭하여 펼치기/접기)</span>
-                        </h3>
-                        <span id="totalExpenseSummary" class="text-xs text-indigo-400 font-medium">총 지출: 0원</span>
-                    </div>
-                    <div id="expenseListContainer" class="space-y-2 hidden">
-                        <p class="text-xs text-slate-500 text-center py-4">등록된 지출 내역이 없습니다.</p>
-                    </div>
-                </div>
-
-                <!-- Calculate Button -->
-                <button onclick="calculateSettlement()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-2xl text-sm transition shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
-                    <span>🧮</span> 정산하기 (자동 계산)
-                </button>
-
-                <!-- Settlement Results -->
-                <div id="settlementResultSection" class="space-y-4 hidden">
-                    <div id="captureArea" class="bg-slate-950 p-2 space-y-4 rounded-2xl">
-                        
-                        <div class="border-b border-slate-800 pb-3 flex justify-between items-center">
-                            <div>
-                                <h3 id="summaryMainTitle" class="text-base font-bold text-slate-100">여행 정산 및 송금 요약</h3>
-                                <p id="summarySubTitle" class="text-[11px] text-slate-400">지출 내역 및 개인별 정산 결과</p>
-                            </div>
-                            <span id="summaryModeBadge" class="text-xs bg-indigo-500/20 text-indigo-300 px-2.5 py-1 rounded-full font-medium">개인별 정산</span>
-                        </div>
-
-                        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
-                            <div class="flex justify-between items-center cursor-pointer select-none" onclick="toggleSummaryExpenseList()">
-                                <h4 class="text-sm font-semibold text-slate-300 flex items-center gap-1.5">
-                                    전체 지출 내역 <span class="text-[10px] text-indigo-400 font-normal">(클릭하여 펼치기/접기)</span>
-                                </h4>
-                                <span id="summaryTotalExpense" class="text-xs text-indigo-400 font-medium">총 지출: 0원</span>
-                            </div>
-                            <div id="summaryExpenseListContainer" class="space-y-2 hidden"></div>
-                        </div>
-
-                        <div class="space-y-3">
-                            <h4 id="summaryCardsHeading" class="text-sm font-bold text-slate-200 pt-1">개인별 정산 카드</h4>
-                            <div id="personalSummaries" class="space-y-3"></div>
-                        </div>
-
-                    </div>
                 </div>
             </div>
         </div>
@@ -629,6 +621,7 @@ const defaultPlacesData = {
         let currentRegion = 'south'; 
         let currentCategory = '관광지';
         let addMode = 'place'; 
+        let rightPanelMode = 'place'; // 'place' or 'expense'
         let leafletMap = null; 
 
         let headerFp = null;
@@ -699,11 +692,9 @@ const defaultPlacesData = {
                 const hHeight = header.offsetHeight;
                 
                 if (window.innerWidth >= 768) {
-                    // Tablet/PC Layout
                     if(leftSidebar) leftSidebar.style.top = (hHeight + 16) + 'px';
                     if(rightSidebar) rightSidebar.style.top = (hHeight + 16) + 'px';
                 } else {
-                    // Mobile Layout
                     if(leftSidebar) leftSidebar.style.top = hHeight + 'px';
                 }
                 
@@ -746,6 +737,40 @@ const defaultPlacesData = {
             renderPlanner();
             initExpenseApp();
         };
+
+        // 우측 패널 토글 함수 (장소 추가 <-> 경비 정산)
+        function toggleRightPanel(forceMode = null) {
+            if (forceMode) {
+                if(rightPanelMode === forceMode) return;
+                rightPanelMode = forceMode;
+            } else {
+                rightPanelMode = rightPanelMode === 'place' ? 'expense' : 'place';
+            }
+            
+            const placePanel = document.getElementById('place-add-panel');
+            const expensePanel = document.getElementById('expense-panel');
+
+            if (rightPanelMode === 'expense') {
+                placePanel.classList.add('hidden');
+                placePanel.classList.remove('flex');
+                expensePanel.classList.remove('hidden');
+                expensePanel.classList.add('flex');
+                initExpenseApp(); 
+                
+                // 모바일에서 스크롤 이동
+                if(window.innerWidth < 768) {
+                    document.getElementById('right-sidebar').scrollIntoView({ behavior: 'smooth' });
+                }
+            } else {
+                expensePanel.classList.add('hidden');
+                expensePanel.classList.remove('flex');
+                placePanel.classList.remove('hidden');
+                placePanel.classList.add('flex');
+            }
+
+            // 토글 후 가운데 버튼 글씨 및 디자인 갱신을 위해 렌더링 호출
+            renderPlanner();
+        }
 
         function updateHeaderDateDisplay() {
             const startVal = tripData.startDate || '2026-12-27';
@@ -978,7 +1003,6 @@ const defaultPlacesData = {
                 
                 renderPlanner(); saveDataToLocalStorage(); 
                 
-                // Add flash effect to center content to show it was added
                 const dayContent = document.getElementById('day-content');
                 if(dayContent) {
                     dayContent.classList.add('opacity-50');
@@ -1142,16 +1166,21 @@ const defaultPlacesData = {
                 </div>
             `;
 
-            // 상단 모서리 라운딩(rounded-t-2xl) 속성을 추가하여 디자인 유지
             let headerWrapperClass = isAllView ? 
                 "bg-cyan-50/95 border-b border-cyan-200 px-4 sm:px-6 py-3 shadow-sm flex justify-between items-center transition-all" 
                 : 
                 "day-header-sticky rounded-t-2xl sticky top-0 bg-cyan-50/95 backdrop-blur-md border-b border-cyan-200 px-4 sm:px-6 py-3 z-[30] shadow-sm flex justify-between items-center transition-all";
             
+            // 상태에 따라 변경되는 동적 토글 버튼
+            let isPlaceMode = rightPanelMode === 'place';
+            let toggleBtnText = isPlaceMode ? '경비' : '장소';
+            let toggleBtnIcon = isPlaceMode ? 'fa-won-sign' : 'fa-map-pin';
+            let toggleBtnBg = isPlaceMode ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700';
+
             let actionButtonsHtml = `
-                <button onclick="openExpenseModal()" class="bg-emerald-600 text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-[14px] font-bold shadow-sm flex items-center justify-center transition hover:bg-emerald-700" title="경비"><i class="fa-solid fa-won-sign sm:mr-1.5"></i><span class="hidden sm:inline">경비</span></button>
+                <button onclick="toggleRightPanel()" class="${toggleBtnBg} text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-[14px] font-bold shadow-sm flex items-center justify-center transition" title="${toggleBtnText} 토글"><i class="fa-solid ${toggleBtnIcon} sm:mr-1.5"></i><span class="hidden sm:inline">${toggleBtnText}</span></button>
                 ${isAllView ? '' : `<button onclick="manualSaveData()" class="bg-slate-800 text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-[14px] font-bold shadow-sm flex items-center justify-center transition hover:bg-slate-900" title="저장"><i class="fa-solid fa-floppy-disk sm:mr-1.5"></i><span class="hidden sm:inline">저장</span></button>`}
-                <button onclick="openDayMapModal(${dayIdx})" class="bg-emerald-500 text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-[14px] font-bold shadow-sm flex items-center justify-center transition hover:bg-emerald-600" title="지도보기"><i class="fa-solid fa-map-location-dot sm:mr-1.5"></i><span class="hidden sm:inline">지도</span></button>
+                <button onclick="openDayMapModal(${dayIdx})" class="bg-sky-500 text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-[14px] font-bold shadow-sm flex items-center justify-center transition hover:bg-sky-600" title="지도보기"><i class="fa-solid fa-map-location-dot sm:mr-1.5"></i><span class="hidden sm:inline">지도</span></button>
             `;
 
             let topActionHtml = `<div class="flex items-center gap-1.5 sm:gap-2 shrink-0">${actionButtonsHtml}</div>`;
@@ -1365,7 +1394,9 @@ const defaultPlacesData = {
             }
             switchCategory(mode === 'hotel' ? '호텔' : '관광지');
             
-            // 모바일 화면에서는 우측 패널로 스크롤 이동, 태블릿/PC에서는 강조 효과
+            // 장소 추가 시 패널이 경비 상태라면 장소 패널로 전환
+            if(rightPanelMode === 'expense') toggleRightPanel('place');
+
             const rightPanel = document.getElementById('right-sidebar');
             if(window.innerWidth < 768) {
                 rightPanel.scrollIntoView({ behavior: 'smooth' });
@@ -1455,16 +1486,7 @@ const defaultPlacesData = {
             }
         }
 
-        // --- 경비 정산 및 송금 계산기 연동 로직 (이하 수정사항 없음) ---
-        function openExpenseModal() {
-            document.getElementById('expenseModal').classList.remove('hidden');
-            initExpenseApp();
-        }
-
-        function closeExpenseModal() {
-            document.getElementById('expenseModal').classList.add('hidden');
-        }
-
+        // --- 경비 정산 및 송금 계산기 로직 ---
         function initExpenseApp() {
             cleanInvalidCouples();
             updateSettlementModeUI();
@@ -1506,12 +1528,12 @@ const defaultPlacesData = {
             if (!indBtn || !cplBtn || !setupSec) return;
 
             if (settlementMode === 'couple') {
-                indBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-slate-200';
-                cplBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow-sm';
+                indBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold transition text-slate-500 hover:text-slate-700';
+                cplBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold transition bg-white text-emerald-700 shadow-sm border border-slate-200';
                 setupSec.classList.remove('hidden');
             } else {
-                indBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition bg-indigo-600 text-white shadow-sm';
-                cplBtn.className = 'px-3 py-1 rounded-lg text-xs font-semibold transition text-slate-400 hover:text-slate-200';
+                indBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold transition bg-white text-emerald-700 shadow-sm border border-slate-200';
+                cplBtn.className = 'px-3 py-1 rounded-lg text-xs font-bold transition text-slate-500 hover:text-slate-700';
                 setupSec.classList.add('hidden');
             }
         }
@@ -1546,28 +1568,28 @@ const defaultPlacesData = {
 
             let html = '';
             if (couples.length === 0) {
-                html += `<p class="text-[11px] text-slate-500 text-center py-1">아직 묶인 부부가 없습니다. 위에서 두 명을 선택해 부부로 묶어주세요.</p>`;
+                html += `<p class="text-[11px] text-slate-400 text-center py-1 font-medium">아직 묶인 부부가 없습니다. 위에서 두 명을 선택해 부부로 묶어주세요.</p>`;
             } else {
                 html += couples.map((c, idx) => {
                     const isM1Rep = c.rep === c.member1;
                     const isM2Rep = c.rep === c.member2;
                     return `
-                        <div class="bg-slate-900 border border-slate-800 rounded-lg px-2.5 py-2 flex items-center justify-between gap-2">
+                        <div class="bg-white border border-slate-200 rounded-lg px-2.5 py-2 flex items-center justify-between gap-2 shadow-sm">
                             <div class="flex items-center gap-1.5 flex-wrap flex-1 min-w-0">
-                                <span class="text-[10px] font-bold text-slate-400 mr-0.5">부부${idx + 1}</span>
+                                <span class="text-[10px] font-bold text-emerald-600 mr-0.5">부부${idx + 1}</span>
                                 <button type="button" onclick="setCoupleRep(${c.id}, '${c.member1}')"
-                                    class="px-2 py-0.5 rounded-md text-xs font-semibold border transition flex items-center gap-1 ${isM1Rep ? 'bg-indigo-500/20 border-indigo-500 text-indigo-200' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'}"
+                                    class="px-2 py-0.5 rounded-md text-xs font-bold border transition flex items-center gap-1 ${isM1Rep ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-700'}"
                                     title="클릭하여 대표자로 지정">
                                     ${isM1Rep ? '<span>👑</span>' : ''}${c.member1}
                                 </button>
-                                <span class="text-slate-600 text-xs">&amp;</span>
+                                <span class="text-slate-400 text-xs font-bold">&amp;</span>
                                 <button type="button" onclick="setCoupleRep(${c.id}, '${c.member2}')"
-                                    class="px-2 py-0.5 rounded-md text-xs font-semibold border transition flex items-center gap-1 ${isM2Rep ? 'bg-indigo-500/20 border-indigo-500 text-indigo-200' : 'bg-slate-950 border-slate-800 text-slate-400 hover:text-slate-200'}"
+                                    class="px-2 py-0.5 rounded-md text-xs font-bold border transition flex items-center gap-1 ${isM2Rep ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-50 border-slate-200 text-slate-500 hover:text-slate-700'}"
                                     title="클릭하여 대표자로 지정">
                                     ${isM2Rep ? '<span>👑</span>' : ''}${c.member2}
                                 </button>
                             </div>
-                            <button type="button" onclick="removeCouplePair(${c.id})" class="text-slate-500 hover:text-rose-400 text-xs px-1.5 py-0.5 shrink-0" title="부부 묶기 해제">
+                            <button type="button" onclick="removeCouplePair(${c.id})" class="text-slate-400 hover:text-rose-500 text-xs px-1.5 py-0.5 shrink-0 font-bold" title="부부 묶기 해제">
                                 해제
                             </button>
                         </div>
@@ -1576,7 +1598,7 @@ const defaultPlacesData = {
             }
 
             if (unassigned.length > 0) {
-                html += `<div class="text-[11px] text-slate-400 pt-1 px-1">미지정(개인 단위 정산): <span class="text-slate-300 font-medium">${unassigned.join(', ')}</span></div>`;
+                html += `<div class="text-[11px] text-slate-500 pt-1 px-1 font-medium">미지정(개인 단위 정산): <span class="text-slate-700 font-bold">${unassigned.join(', ')}</span></div>`;
             }
 
             listContainer.innerHTML = html;
@@ -1589,12 +1611,7 @@ const defaultPlacesData = {
                 alert('서로 다른 두 명의 참가자를 선택해주세요.');
                 return;
             }
-            couples.push({
-                id: Date.now(),
-                member1: m1,
-                member2: m2,
-                rep: m1
-            });
+            couples.push({ id: Date.now(), member1: m1, member2: m2, rep: m1 });
             renderCoupleSetup();
             renderExpenseParticipantsCheckboxes();
             renderExpenses();
@@ -1625,13 +1642,7 @@ const defaultPlacesData = {
         function getSettlementEntities() {
             if (settlementMode !== 'couple') {
                 return participants.map(p => ({
-                    id: p,
-                    label: p,
-                    subLabel: '',
-                    fullTitle: p,
-                    rep: p,
-                    members: [p],
-                    isCouple: false
+                    id: p, label: p, subLabel: '', fullTitle: p, rep: p, members: [p], isCouple: false
                 }));
             }
 
@@ -1644,26 +1655,14 @@ const defaultPlacesData = {
                 assigned.add(c.member2);
                 const rep = c.rep || c.member1;
                 entities.push({
-                    id: 'couple_' + c.id,
-                    label: rep,
-                    subLabel: `${c.member1} · ${c.member2} 부부 대표`,
-                    fullTitle: `${rep} (${c.member1}·${c.member2} 부부)`,
-                    rep: rep,
-                    members: [c.member1, c.member2],
-                    isCouple: true
+                    id: 'couple_' + c.id, label: rep, subLabel: `${c.member1} · ${c.member2} 부부 대표`, fullTitle: `${rep} (${c.member1}·${c.member2} 부부)`, rep: rep, members: [c.member1, c.member2], isCouple: true
                 });
             });
 
             participants.forEach(p => {
                 if (!assigned.has(p)) {
                     entities.push({
-                        id: 'solo_' + p,
-                        label: p,
-                        subLabel: '개인 정산',
-                        fullTitle: p,
-                        rep: p,
-                        members: [p],
-                        isCouple: false
+                        id: 'solo_' + p, label: p, subLabel: '개인 정산', fullTitle: p, rep: p, members: [p], isCouple: false
                     });
                 }
             });
@@ -1680,13 +1679,11 @@ const defaultPlacesData = {
         }
 
         function toggleExpenseList() {
-            const container = document.getElementById('expenseListContainer');
-            container.classList.toggle('hidden');
+            document.getElementById('expenseListContainer').classList.toggle('hidden');
         }
 
         function toggleSummaryExpenseList() {
-            const container = document.getElementById('summaryExpenseListContainer');
-            container.classList.toggle('hidden');
+            document.getElementById('summaryExpenseListContainer').classList.toggle('hidden');
         }
 
         function updateTripTitle() {
@@ -1695,10 +1692,10 @@ const defaultPlacesData = {
             const summaryMainTitle = document.getElementById('summaryMainTitle');
 
             if (tripName) {
-                headerTitle.innerText = `${tripName} 정산 & 송금 계산기`;
+                headerTitle.innerHTML = `<i class="fa-solid fa-won-sign mr-2"></i>${tripName} 정산 & 송금 계산기`;
                 summaryMainTitle.innerText = `${tripName} 정산 및 송금 요약`;
             } else {
-                headerTitle.innerText = `여행 정산 & 송금 계산기`;
+                headerTitle.innerHTML = `<i class="fa-solid fa-won-sign mr-2"></i>여행 정산 & 송금 계산기`;
                 summaryMainTitle.innerText = `여행 정산 및 송금 요약`;
             }
             autoSaveExpenseAppData();
@@ -1711,9 +1708,9 @@ const defaultPlacesData = {
             countBadge.innerText = `${participants.length}명`;
             
             container.innerHTML = participants.map(p => `
-                <span class="inline-flex items-center gap-1.5 bg-slate-950 border border-slate-800 text-slate-300 px-2.5 py-1 rounded-lg text-xs">
+                <span class="inline-flex items-center gap-1.5 bg-slate-100 border border-slate-200 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm">
                     ${p}
-                    ${participants.length > 1 ? `<button onclick="removeParticipant('${p}')" class="text-slate-500 hover:text-rose-400 font-bold">&times;</button>` : ''}
+                    ${participants.length > 1 ? `<button onclick="removeParticipant('${p}')" class="text-slate-400 hover:text-rose-500 font-extrabold">&times;</button>` : ''}
                 </span>
             `).join('');
             
@@ -1726,10 +1723,7 @@ const defaultPlacesData = {
             const input = document.getElementById('newParticipantName');
             const name = input.value.trim();
             if (!name) return;
-            if (participants.includes(name)) {
-                alert('이미 존재하는 참여자입니다.');
-                return;
-            }
+            if (participants.includes(name)) { alert('이미 존재하는 참여자입니다.'); return; }
             participants.push(name);
             input.value = '';
             renderParticipants();
@@ -1765,14 +1759,14 @@ const defaultPlacesData = {
 
                 couples.forEach(c => {
                     html += `
-                        <div class="inline-flex items-center gap-1.5 bg-slate-900/90 px-2 py-1 rounded-lg border border-indigo-500/30">
-                            <span class="text-[10px] text-indigo-300 font-semibold mr-0.5">부부</span>
-                            <label class="inline-flex items-center gap-1 text-xs text-slate-200 cursor-pointer bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
-                                <input type="checkbox" value="${c.member1}" checked class="accent-indigo-500 expense-target-checkbox">
+                        <div class="inline-flex items-center gap-1.5 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200 shadow-sm">
+                            <span class="text-[10px] text-emerald-700 font-extrabold mr-0.5">부부</span>
+                            <label class="inline-flex items-center gap-1 text-xs text-slate-700 cursor-pointer bg-white px-2 py-0.5 rounded border border-slate-200 font-bold shadow-sm">
+                                <input type="checkbox" value="${c.member1}" checked class="accent-emerald-600 expense-target-checkbox">
                                 ${c.member1}
                             </label>
-                            <label class="inline-flex items-center gap-1 text-xs text-slate-200 cursor-pointer bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
-                                <input type="checkbox" value="${c.member2}" checked class="accent-indigo-500 expense-target-checkbox">
+                            <label class="inline-flex items-center gap-1 text-xs text-slate-700 cursor-pointer bg-white px-2 py-0.5 rounded border border-slate-200 font-bold shadow-sm">
+                                <input type="checkbox" value="${c.member2}" checked class="accent-emerald-600 expense-target-checkbox">
                                 ${c.member2}
                             </label>
                         </div>
@@ -1782,8 +1776,8 @@ const defaultPlacesData = {
                 participants.forEach(p => {
                     if (!assigned.has(p)) {
                         html += `
-                            <label class="inline-flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
-                                <input type="checkbox" value="${p}" checked class="accent-indigo-500 expense-target-checkbox">
+                            <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm font-bold">
+                                <input type="checkbox" value="${p}" checked class="accent-emerald-600 expense-target-checkbox">
                                 ${p}
                             </label>
                         `;
@@ -1793,8 +1787,8 @@ const defaultPlacesData = {
                 container.innerHTML = html;
             } else {
                 container.innerHTML = participants.map(p => `
-                    <label class="inline-flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
-                        <input type="checkbox" value="${p}" checked class="accent-indigo-500 expense-target-checkbox">
+                    <label class="inline-flex items-center gap-1.5 text-xs text-slate-700 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-slate-200 shadow-sm font-bold">
+                        <input type="checkbox" value="${p}" checked class="accent-emerald-600 expense-target-checkbox">
                         ${p}
                     </label>
                 `).join('');
@@ -1812,14 +1806,8 @@ const defaultPlacesData = {
             const payer = payerSelect.value;
             const targets = Array.from(checkboxes).map(cb => cb.value);
 
-            if (isNaN(amount) || amount <= 0) {
-                alert('올바른 금액을 입력해주세요.');
-                return;
-            }
-            if (targets.length === 0) {
-                alert('참여 인원을 최소 1명 이상 선택해주세요.');
-                return;
-            }
+            if (isNaN(amount) || amount <= 0) { alert('올바른 금액을 입력해주세요.'); return; }
+            if (targets.length === 0) { alert('참여 인원을 최소 1명 이상 선택해주세요.'); return; }
 
             expenses.push({ id: Date.now(), title, amount, payer, targets });
             
@@ -1850,7 +1838,7 @@ const defaultPlacesData = {
             if (summaryTotal) summaryTotal.innerText = `총 지출: ${total.toLocaleString()}원`;
 
             if (expenses.length === 0) {
-                const emptyHtml = `<p class="text-xs text-slate-500 text-center py-4">등록된 지출 내역이 없습니다.</p>`;
+                const emptyHtml = `<p class="text-xs text-slate-400 font-medium text-center py-4">등록된 지출 내역이 없습니다.</p>`;
                 container.innerHTML = emptyHtml;
                 if (summaryContainer) summaryContainer.innerHTML = emptyHtml;
                 return;
@@ -1877,24 +1865,24 @@ const defaultPlacesData = {
                             return `${ent.label}${ent.isCouple ? ' 부부' : ''} ${num / g}/${denom / g}`;
                         });
                     if (parts.length > 0) {
-                        ratioHtml = `<div class="text-[11px] text-indigo-300 mt-0.5">부담 비율: ${parts.join(' · ')}</div>`;
+                        ratioHtml = `<div class="text-[11px] text-emerald-600 font-bold mt-0.5">부담 비율: ${parts.join(' · ')}</div>`;
                     }
                 }
 
                 return `
-                    <div class="bg-slate-950 border border-slate-800/80 rounded-xl p-3 flex justify-between items-center text-xs">
+                    <div class="bg-white border border-slate-200 rounded-xl p-3 flex justify-between items-center text-xs shadow-sm">
                         <div class="space-y-1">
                             <div class="flex items-center gap-2">
-                                <span class="font-bold text-slate-200 text-sm">${e.title}</span>
-                                <span class="text-indigo-400 font-semibold">${e.amount.toLocaleString()}원</span>
+                                <span class="font-bold text-slate-800 text-sm">${e.title}</span>
+                                <span class="text-emerald-700 font-extrabold">${e.amount.toLocaleString()}원</span>
                             </div>
-                            <div class="text-slate-400">
-                                결제자: <span class="text-slate-200 font-medium">${e.payer}</span> | 참여 인원 (${validTargets.length}명): ${validTargets.join(', ')}
+                            <div class="text-slate-500 font-medium">
+                                결제자: <span class="text-slate-800 font-bold">${e.payer}</span> | 참여 인원 (${validTargets.length}명): <span class="font-bold">${validTargets.join(', ')}</span>
                             </div>
                             ${ratioHtml}
                         </div>
-                        <button onclick="deleteExpense(${e.id})" class="text-slate-500 hover:text-rose-400 p-1.5 transition shrink-0">
-                            🗑️
+                        <button onclick="deleteExpense(${e.id})" class="text-slate-400 hover:text-rose-500 p-1.5 transition shrink-0 font-bold" title="삭제">
+                            <i class="fa-solid fa-trash-can text-sm"></i>
                         </button>
                     </div>
                 `;
@@ -1908,32 +1896,20 @@ const defaultPlacesData = {
             renderExpenses(); 
 
             const entities = getSettlementEntities();
-            let paidMap = {};
-            let shareMap = {};
-            let personShareMap = {};
+            let paidMap = {}; let shareMap = {}; let personShareMap = {};
 
-            entities.forEach(ent => {
-                paidMap[ent.id] = 0;
-                shareMap[ent.id] = 0;
-            });
-            participants.forEach(p => {
-                personShareMap[p] = 0;
-            });
+            entities.forEach(ent => { paidMap[ent.id] = 0; shareMap[ent.id] = 0; });
+            participants.forEach(p => { personShareMap[p] = 0; });
 
             let debtMatrix = {}; 
-            entities.forEach(e1 => {
-                debtMatrix[e1.id] = {};
-                entities.forEach(e2 => { debtMatrix[e1.id][e2.id] = 0; });
-            });
+            entities.forEach(e1 => { debtMatrix[e1.id] = {}; entities.forEach(e2 => { debtMatrix[e1.id][e2.id] = 0; }); });
 
             expenses.forEach(e => {
                 const validTargets = e.targets.filter(t => participants.includes(t));
                 if (validTargets.length === 0) return;
 
                 const payerEntity = findEntityByPerson(e.payer, entities);
-                if (payerEntity) {
-                    paidMap[payerEntity.id] = (paidMap[payerEntity.id] || 0) + e.amount;
-                }
+                if (payerEntity) { paidMap[payerEntity.id] = (paidMap[payerEntity.id] || 0) + e.amount; }
 
                 let sharePerPerson = e.amount / validTargets.length;
                 
@@ -1953,8 +1929,7 @@ const defaultPlacesData = {
                 entities.forEach(e2 => {
                     if (e1.id !== e2.id && debtMatrix[e1.id][e2.id] > 0 && debtMatrix[e2.id][e1.id] > 0) {
                         let minVal = Math.min(debtMatrix[e1.id][e2.id], debtMatrix[e2.id][e1.id]);
-                        debtMatrix[e1.id][e2.id] -= minVal;
-                        debtMatrix[e2.id][e1.id] -= minVal;
+                        debtMatrix[e1.id][e2.id] -= minVal; debtMatrix[e2.id][e1.id] -= minVal;
                     }
                 });
             });
@@ -1963,18 +1938,12 @@ const defaultPlacesData = {
             entities.forEach(fromEnt => {
                 entities.forEach(toEnt => {
                     let amt = debtMatrix[fromEnt.id][toEnt.id];
-                    if (amt > 0.1) {
-                        detailedTransfers.push({ from: fromEnt, to: toEnt, amount: Math.round(amt) });
-                    }
+                    if (amt > 0.1) { detailedTransfers.push({ from: fromEnt, to: toEnt, amount: Math.round(amt) }); }
                 });
             });
 
-            let outgoingMap = {};
-            let incomingMap = {};
-            entities.forEach(ent => {
-                outgoingMap[ent.id] = [];
-                incomingMap[ent.id] = [];
-            });
+            let outgoingMap = {}; let incomingMap = {};
+            entities.forEach(ent => { outgoingMap[ent.id] = []; incomingMap[ent.id] = []; });
 
             detailedTransfers.forEach(t => {
                 outgoingMap[t.from.id].push({ to: t.to, amount: t.amount });
@@ -1998,75 +1967,72 @@ const defaultPlacesData = {
             
             const personalContainer = document.getElementById('personalSummaries');
             personalContainer.innerHTML = entities.map(ent => {
-                let paid = paidMap[ent.id] || 0;
-                let share = shareMap[ent.id] || 0;
-                let net = paid - share;
+                let paid = paidMap[ent.id] || 0; let share = shareMap[ent.id] || 0; let net = paid - share;
                 
-                let outList = outgoingMap[ent.id] || [];
-                let inList = incomingMap[ent.id] || [];
+                let outList = outgoingMap[ent.id] || []; let inList = incomingMap[ent.id] || [];
                 let totalOut = outList.reduce((sum, o) => sum + o.amount, 0);
 
                 let badgeHtml = '';
                 if (net > 0.5) {
-                    badgeHtml = `<span class="bg-emerald-500/20 text-emerald-400 text-xs px-2.5 py-1 rounded-full font-bold">+${Math.round(net).toLocaleString()}원 받을 예정</span>`;
+                    badgeHtml = `<span class="bg-emerald-100 text-emerald-700 border border-emerald-200 text-xs px-2.5 py-1 rounded-full font-bold shadow-sm">+${Math.round(net).toLocaleString()}원 받을 예정</span>`;
                 } else if (net < -0.5) {
-                    badgeHtml = `<span class="bg-rose-500/20 text-rose-400 text-xs px-2.5 py-1 rounded-full font-bold">${Math.round(-net).toLocaleString()}원 보낼 예정</span>`;
+                    badgeHtml = `<span class="bg-rose-100 text-rose-600 border border-rose-200 text-xs px-2.5 py-1 rounded-full font-bold shadow-sm">${Math.round(-net).toLocaleString()}원 보낼 예정</span>`;
                 } else {
-                    badgeHtml = `<span class="bg-slate-800 text-slate-400 text-xs px-2.5 py-1 rounded-full font-medium">정산 완료 (0원)</span>`;
+                    badgeHtml = `<span class="bg-slate-100 text-slate-600 border border-slate-200 text-xs px-2.5 py-1 rounded-full font-bold shadow-sm">정산 완료 (0원)</span>`;
                 }
 
                 const titleHtml = ent.isCouple
                     ? `<div>
                          <div class="flex items-center gap-1.5">
-                           <span class="text-amber-400 text-sm">👑</span>
-                           <span class="font-bold text-slate-100 text-base">${ent.label}</span>
+                           <span class="text-amber-500 text-sm">👑</span>
+                           <span class="font-extrabold text-slate-800 text-base">${ent.label}</span>
                          </div>
-                         <div class="text-[11px] text-indigo-300 mt-0.5">${ent.subLabel}</div>
+                         <div class="text-[11px] font-bold text-emerald-600 mt-0.5">${ent.subLabel}</div>
                        </div>`
                     : `<div>
-                         <span class="font-bold text-slate-100 text-base">${ent.label}</span>
-                         ${ent.subLabel ? `<div class="text-[11px] text-slate-400 mt-0.5">${ent.subLabel}</div>` : ''}
+                         <span class="font-extrabold text-slate-800 text-base">${ent.label}</span>
+                         ${ent.subLabel ? `<div class="text-[11px] font-bold text-slate-500 mt-0.5">${ent.subLabel}</div>` : ''}
                        </div>`;
 
                 const memberBreakdownHtml = ent.isCouple
-                    ? `<div class="text-[11px] text-slate-400 text-right">
+                    ? `<div class="text-[11px] font-bold text-slate-500 text-right mt-1">
                          (${ent.members.map(m => `${m} ${Math.round(personShareMap[m] || 0).toLocaleString()}원`).join(' + ')})
                        </div>`
                     : '';
 
                 return `
-                    <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+                    <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm space-y-3">
                         <div class="flex justify-between items-start gap-2">
                             ${titleHtml}
                             <div class="shrink-0">${badgeHtml}</div>
                         </div>
-                        <div class="text-xs space-y-1 text-slate-300 border-t border-slate-800/80 pt-2.5">
-                            <div class="flex justify-between">
-                                <span class="text-slate-400">${ent.isCouple ? '부부 결제한 금액:' : '내가 결제한 금액:'}</span>
-                                <span class="font-semibold text-slate-200">${paid.toLocaleString()}원</span>
+                        <div class="text-xs space-y-1.5 text-slate-600 border-t border-slate-100 pt-3">
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-slate-500">${ent.isCouple ? '부부 결제 금액:' : '내가 결제한 금액:'}</span>
+                                <span class="font-extrabold text-slate-800 text-sm">${paid.toLocaleString()}원</span>
                             </div>
-                            <div class="flex justify-between">
-                                <span class="text-slate-400">${ent.isCouple ? '부부 부담할 몫 (사용 금액):' : '내가 부담할 몫 (사용 금액):'}</span>
-                                <span class="font-semibold text-slate-200">${Math.round(share).toLocaleString()}원</span>
+                            <div class="flex justify-between items-center">
+                                <span class="font-bold text-slate-500">${ent.isCouple ? '부부 부담할 몫 (사용 금액):' : '내가 부담할 몫 (사용 금액):'}</span>
+                                <span class="font-extrabold text-slate-800 text-sm">${Math.round(share).toLocaleString()}원</span>
                             </div>
                             ${memberBreakdownHtml}
                         </div>
 
                         ${outList.length > 0 ? `
-                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5 text-xs">
-                                <div class="text-rose-400 font-semibold">총 송금할 금액: ${totalOut.toLocaleString()}원</div>
-                                ${outList.map(o => `<div class="text-slate-300 pl-2">👉 <span class="text-white font-medium">${o.to.fullTitle}</span> 님에게: <span class="font-semibold text-white">${o.amount.toLocaleString()}원</span></div>`).join('')}
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-1.5 text-xs shadow-inner">
+                                <div class="text-rose-600 font-extrabold">총 송금할 금액: ${totalOut.toLocaleString()}원</div>
+                                ${outList.map(o => `<div class="text-slate-600 pl-2 font-medium">👉 <span class="text-slate-800 font-extrabold">${o.to.fullTitle}</span> 님에게: <span class="font-extrabold text-slate-800">${o.amount.toLocaleString()}원</span></div>`).join('')}
                             </div>
                         ` : `
-                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs text-slate-400">
+                            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs font-bold text-slate-400 text-center shadow-inner">
                                 ${ent.isCouple ? '부부 대표가 송금할 금액: 0원 (보낼 금액 없음)' : '내가 송금할 금액: 0원 (보낼 금액 없음)'}
                             </div>
                         `}
 
                         ${inList.length > 0 ? `
-                            <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 space-y-1.5 text-xs">
-                                <div class="text-emerald-400 font-semibold">받을 상세 내역:</div>
-                                ${inList.map(i => `<div class="text-slate-300 pl-2">👉 <span class="text-white font-medium">${i.from.fullTitle}</span> 님으로부터: <span class="font-semibold text-white">${i.amount.toLocaleString()}원</span></div>`).join('')}
+                            <div class="bg-emerald-50 p-3 rounded-xl border border-emerald-100 space-y-1.5 text-xs shadow-inner">
+                                <div class="text-emerald-700 font-extrabold">받을 상세 내역:</div>
+                                ${inList.map(i => `<div class="text-emerald-800 pl-2 font-medium">👉 <span class="text-emerald-900 font-extrabold">${i.from.fullTitle}</span> 님으로부터: <span class="font-extrabold text-emerald-900">${i.amount.toLocaleString()}원</span></div>`).join('')}
                             </div>
                         ` : ''}
                     </div>
@@ -2088,7 +2054,7 @@ const defaultPlacesData = {
 
             html2canvas(targetElement, {
                 scale: 2,
-                backgroundColor: '#020617',
+                backgroundColor: '#f8fafc',
                 useCORS: true
             }).then(canvas => {
                 canvas.toBlob(blob => {
