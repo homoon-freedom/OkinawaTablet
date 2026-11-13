@@ -525,7 +525,57 @@
         </div>
     </div>
 
-    <!-- Custom Place Modal -->
+    <!-- 등록된 장소 선택하여 추가 모달 (이미지 형태 100% 반영) -->
+    <div id="selectPlaceModal" class="hidden fixed inset-0 z-[95] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col h-[85vh]">
+            <!-- 헤더 (이미지와 동일한 디자인) -->
+            <div class="bg-gradient-to-r from-cyan-600 to-blue-700 px-4 py-3 flex justify-between items-center text-white shrink-0 gap-2">
+                <div class="flex-1 min-w-0">
+                    <h3 class="font-bold text-[15px] sm:text-base truncate"><i class="fa-solid fa-map-pin mr-1.5"></i>장소 탐색 및 추가</h3>
+                    <p id="select-modal-subtitle" class="text-[10px] sm:text-[11px] text-cyan-100 mt-0.5 truncate">선택된 일정에 장소가 추가됩니다.</p>
+                </div>
+                <div class="flex flex-col gap-1.5 shrink-0">
+                    <button onclick="openSelectCategoryMapModal()" id="selectCategoryMapBtn" class="bg-emerald-500 hover:bg-emerald-600 text-white py-1 px-2.5 rounded-md text-[11px] font-bold shadow-sm flex items-center justify-center gap-1 transition min-w-[120px]">
+                        <i class="fa-solid fa-map-location-dot"></i> 분류별 지도
+                    </button>
+                    <button onclick="openAddModal()" class="bg-indigo-500 hover:bg-indigo-600 text-white py-1 px-2.5 rounded-md text-[11px] font-bold shadow-sm flex items-center justify-center gap-1 transition min-w-[120px]">
+                        <i class="fa-solid fa-plus-circle"></i> 장소 직접 입력
+                    </button>
+                </div>
+            </div>
+
+            <!-- 지역 및 카테고리 탭, 2열 카드 그리드 영역 -->
+            <div class="overflow-y-auto flex-1 hide-scrollbar relative flex flex-col bg-slate-50">
+                <div class="sticky top-0 z-20 bg-slate-50 px-4 py-3 border-b border-slate-200 shadow-sm space-y-2.5">
+                    <div class="flex bg-slate-200/70 p-1 rounded-xl">
+                        <button onclick="switchSelectModalRegion('south')" id="sel-btn-south" class="flex-1 py-2 rounded-lg text-[13px] font-bold transition bg-white text-cyan-700 shadow-sm">남부</button>
+                        <button onclick="switchSelectModalRegion('central')" id="sel-btn-central" class="flex-1 py-2 rounded-lg text-[13px] font-bold transition text-slate-500 hover:text-slate-800">중부</button>
+                        <button onclick="switchSelectModalRegion('north')" id="sel-btn-north" class="flex-1 py-2 rounded-lg text-[13px] font-bold transition text-slate-500 hover:text-slate-800">북부</button>
+                    </div>
+
+                    <div class="flex flex-wrap gap-1.5">
+                        <button onclick="switchSelectModalCategory('관광지')" id="sel-cat-관광지" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-cyan-600 text-white shadow-sm">관광지</button>
+                        <button onclick="switchSelectModalCategory('식당')" id="sel-cat-식당" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">식당</button>
+                        <button onclick="switchSelectModalCategory('카페')" id="sel-cat-카페" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">카페</button>
+                        <button onclick="switchSelectModalCategory('쇼핑')" id="sel-cat-쇼핑" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">쇼핑</button>
+                        <button onclick="switchSelectModalCategory('액티비티')" id="sel-cat-액티비티" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">액티비티</button>
+                        <button onclick="switchSelectModalCategory('호텔')" id="sel-cat-호텔" class="px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100">호텔</button>
+                    </div>
+                </div>
+
+                <!-- 2열 카드 그리드 (이미지 형태 100% 일치) -->
+                <div id="select-places-container" class="grid grid-cols-2 gap-2.5 px-4 py-4 relative z-10"></div>
+            </div>
+
+            <!-- 하단 닫기 바 -->
+            <div class="p-3 bg-white border-t border-slate-200 shrink-0 flex justify-between items-center">
+                <span id="select-modal-day-info" class="text-xs font-bold text-slate-500">Day 1 일정에 추가 중</span>
+                <button onclick="closeSelectPlaceModal()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm">닫기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Place Modal (직접 등록) -->
     <div id="addPlaceModal" class="hidden fixed inset-0 z-[90] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
             <div id="modal-header-bg" class="bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-4 flex justify-between items-center text-white">
@@ -593,164 +643,11 @@
     </div>
 
     <script>
-// 전체 기본 장소 데이터 
+// 기본 장소 데이터를 모두 비운 초기 상태
 const defaultPlacesData = {
-    south: [
-        { id: 's_att1', group: '관광지', name: '슈리성', category: '역사유적', desc: '류큐왕국의 왕궁이자 역사 유적', lat: 26.2171, lng: 127.7195 },
-        { id: 's_att2', group: '관광지', name: '국제거리', category: '번화가', desc: '오키나와 대표 번화가와 관광 거리', lat: 26.2166, lng: 127.6846 },
-        { id: 's_att3', group: '관광지', name: '세이화우타키', category: '관광지', desc: '류큐왕국의 신성한 성지', lat: 26.1740, lng: 127.8265 },
-        { id: 's_att4', group: '관광지', name: '오키나와 월드', category: '관광지', desc: '전통문화와 동굴을 체험하는 테마파크', lat: 26.1360, lng: 127.7505 },
-        { id: 's_att5', group: '관광지', name: '교쿠센도 동굴', category: '관광지', desc: '대규모 석회암 종유동굴', lat: 26.1365, lng: 127.7510 },
-        { id: 's_att6', group: '관광지', name: '평화기념공원', category: '관광지', desc: '오키나와 전쟁을 기억하는 추모공원', lat: 26.0958, lng: 127.7165 },
-        { id: 's_att7', group: '관광지', name: '히메유리 평화기념자료관', category: '관광지', desc: '전쟁 당시 여학생들의 희생을 기리는 박물관', lat: 26.0970, lng: 127.6880 },
-        { id: 's_att8', group: '관광지', name: '세나가지마 우미카지테라스', category: '관광지', desc: '바다 전망의 흰색 건물과 상점 거리', lat: 26.1760, lng: 127.6530 },
-        { id: 's_att9', group: '관광지', name: '치넨미사키 공원', category: '관광지', desc: '태평양을 바라보는 전망 명소', lat: 26.1585, lng: 127.8290 },
-        { id: 's_att10', group: '관광지', name: '오지마섬', category: '관광지', desc: '해산물과 튀김으로 유명한 작은 어촌섬', lat: 26.1385, lng: 127.7735 },
-        { id: 's_eat1', group: '식당', name: '잭스 스테이크 하우스', category: '식당', desc: '나하의 유명한 미국식 스테이크 전문점', lat: 26.2130, lng: 127.6785 },
-        { id: 's_eat2', group: '식당', name: '얏빠리 스테이크', category: '식당', desc: '합리적인 가격의 일본식 스테이크', lat: 26.2155, lng: 127.6870 },
-        { id: 's_eat3', group: '식당', name: '미카도', category: '식당', desc: '현지인에게 인기 있는 일본 가정식 식당', lat: 26.2150, lng: 127.6770 },
-        { id: 's_eat4', group: '식당', name: '만부', category: '식당', desc: '오키나와 흑돼지 아구 요리 전문점', lat: 26.2160, lng: 127.6850 },
-        { id: 's_eat5', group: '식당', name: '키시모토 식당', category: '식당', desc: '전통 오키나와 소바 전문점', lat: 26.1370, lng: 127.7510 },
-        { id: 's_eat6', group: '식당', name: '하마노차야', category: '식당', desc: '바다 전망을 즐기는 해변 레스토랑', lat: 26.1310, lng: 127.7750 },
-        { id: 's_eat7', group: '식당', name: '마키시 공설시장', category: '식당', desc: '신선한 해산물과 오키나와 음식', lat: 26.2165, lng: 127.6900 },
-        { id: 's_eat8', group: '식당', name: '포크 타마고 오니기리', category: '식당', desc: '스팸과 계란을 넣은 오키나와 주먹밥', lat: 26.2135, lng: 127.6800 },
-        { id: 's_eat9', group: '식당', name: '오지마 튀김 전문점', category: '식당', desc: '해산물과 야채 튀김 전문점', lat: 26.1385, lng: 127.7735 },
-        { id: 's_eat10', group: '식당', name: '류큐 요리 우라시마', category: '식당', desc: '전통 류큐 요리를 맛볼 수 있는 식당', lat: 26.2170, lng: 127.6810 },
-        { id: 's_caf1', group: '카페', name: '하마노차야 (Hamabe no Chaya)', category: '카페', desc: '바다 바로 앞에서 커피를 즐기는 카페', lat: 26.1310, lng: 127.7750 },
-        { id: 's_caf2', group: '카페', name: '카페 쿠루쿠마', category: '카페', desc: '태국 음식과 아름다운 바다 전망', lat: 26.1530, lng: 127.8230 },
-        { id: 's_caf3', group: '카페', name: '우미카지테라스 카페', category: '카페', desc: '바다와 비행기 전망을 즐기는 카페', lat: 26.1760, lng: 127.6530 },
-        { id: 's_caf4', group: '카페', name: '가란가란', category: '카페', desc: '전통 오키나와 분위기의 휴식 공간', lat: 26.1430, lng: 127.7500 },
-        { id: 's_caf5', group: '카페', name: '플랜트홀릭', category: '카페', desc: '식물과 자연 분위기의 감성 카페', lat: 26.2170, lng: 127.6850 },
-        { id: 's_caf6', group: '카페', name: '로칸 커피 크리에이터스', category: '카페', desc: '스페셜티 커피 전문점', lat: 26.2100, lng: 127.6870 },
-        { id: 's_caf7', group: '카페', name: '후스 커피', category: '카페', desc: '감각적인 인테리어와 브런치 카페', lat: 26.2160, lng: 127.6900 },
-        { id: 's_caf8', group: '카페', name: '씨사이드 가든 나미노우에', category: '카페', desc: '바다 전망과 하와이풍 메뉴', lat: 26.2200, lng: 127.6680 },
-        { id: 's_caf9', group: '카페', name: '야치문 카페 차타로', category: '카페', desc: '전통 도자기 마을 분위기의 카페', lat: 26.2070, lng: 127.7180 },
-        { id: 's_caf10', group: '카페', name: '류보 백화점 카페 거리', category: '카페', desc: '쇼핑과 함께 즐기는 도심 카페 공간', lat: 26.2140, lng: 127.6790 },
-        { id: 's_shp1', group: '쇼핑', name: '국제거리', category: '쇼핑', desc: '오키나와 기념품과 특산품 쇼핑 거리', lat: 26.2166, lng: 127.6846 },
-        { id: 's_shp2', group: '쇼핑', name: '마키시 공설시장', category: '쇼핑', desc: '해산물, 식품, 지역 특산품 시장', lat: 26.2165, lng: 127.6900 },
-        { id: 's_shp3', group: '쇼핑', name: '돈키호테 국제거리점', category: '쇼핑', desc: '화장품, 과자, 생활용품 쇼핑', lat: 26.2150, lng: 127.6890 },
-        { id: 's_shp4', group: '쇼핑', name: 'T 갤러리아 오키나와', category: '쇼핑', desc: '명품 및 면세 쇼핑 공간', lat: 26.2220, lng: 127.6980 },
-        { id: 's_shp5', group: '쇼핑', name: '나하 메인 플레이스', category: '쇼핑', desc: '대형 쇼핑몰과 식당가', lat: 26.2240, lng: 127.6950 },
-        { id: 's_shp6', group: '쇼핑', name: '아시비나 아울렛', category: '쇼핑', desc: '일본 및 해외 브랜드 아울렛', lat: 26.1600, lng: 127.6540 },
-        { id: 's_shp7', group: '쇼핑', name: '우미카지테라스 (쇼핑)', category: '쇼핑', desc: '기념품, 디저트, 패션 소품', lat: 26.1760, lng: 127.6530 },
-        { id: 's_shp8', group: '쇼핑', name: '츠보야 야치문 거리', category: '쇼핑', desc: '오키나와 전통 도자기 쇼핑 거리', lat: 26.2140, lng: 127.6890 },
-        { id: 's_shp9', group: '쇼핑', name: '산에이 나하 메인 플레이스', category: '쇼핑', desc: '패션, 식품, 생활용품 쇼핑몰', lat: 26.2240, lng: 127.6950 },
-        { id: 's_shp10', group: '쇼핑', name: '파르코시티', category: '쇼핑', desc: '다양한 브랜드가 입점한 복합 쇼핑몰', lat: 26.2580, lng: 127.6990 },
-        { id: 's_act1', group: '액티비티', name: '세나가지마 온천', category: '액티비티', desc: '바다를 바라보며 즐기는 온천', lat: 26.1760, lng: 127.6530 },
-        { id: 's_act2', group: '액티비티', name: '오키나와 월드 전통공연', category: '액티비티', desc: '에이사 전통춤과 류큐 문화 공연', lat: 26.1360, lng: 127.7505 },
-        { id: 's_act3', group: '액티비티', name: '교쿠센도 동굴 탐험', category: '액티비티', desc: '석회암 동굴 내부 탐방', lat: 26.1365, lng: 127.7510 },
-        { id: 's_act4', group: '액티비티', name: '하마히가섬 드라이브', category: '액티비티', desc: '전통마을과 해안도로 드라이브', lat: 26.3400, lng: 127.9600 },
-        { id: 's_act5', group: '액티비티', name: '치넨미사키 일출 감상', category: '액티비티', desc: '태평양의 아름다운 일출 감상', lat: 26.1585, lng: 127.8290 },
-        { id: 's_act6', group: '액티비티', name: '오지마 해산물 체험', category: '액티비티', desc: '현지 해산물과 튀김 먹거리 체험', lat: 26.1385, lng: 127.7735 },
-        { id: 's_act7', group: '액티비티', name: '국제거리 먹거리 투어', category: '액티비티', desc: '현지 음식과 길거리 음식 탐방', lat: 26.2166, lng: 127.6846 },
-        { id: 's_act8', group: '액티비티', name: '나하 크루즈 투어', category: '액티비티', desc: '나하항 주변 바다 관광', lat: 26.2200, lng: 127.6700 },
-        { id: 's_act9', group: '액티비티', name: '세이화우타키 문화 탐방', category: '액티비티', desc: '류큐왕국의 종교와 역사 탐방', lat: 26.1740, lng: 127.8265 },
-        { id: 's_act10', group: '액티비티', name: '이토만 해안 드라이브', category: '액티비티', desc: '남부 해안도로와 등대 풍경 감상', lat: 26.0700, lng: 127.6900 }
-    ],
-    central: [
-        { id: 'c_att1', group: '관광지', name: '아메리칸 빌리지', category: '관광지', desc: '미국 서부 분위기의 쇼핑 및 관광 명소', lat: 26.3170, lng: 127.7570 },
-        { id: 'c_att2', group: '관광지', name: '만자모', category: '관광지', desc: '코끼리 코 모양의 절벽과 바다 전망', lat: 26.5040, lng: 127.8520 },
-        { id: 'c_att3', group: '관광지', name: '푸른 동굴', category: '관광지', desc: '푸른빛 바다로 유명한 해양 명소', lat: 26.4460, lng: 127.7790 },
-        { id: 'c_att4', group: '관광지', name: '잔파곶', category: '관광지', desc: '하얀 등대와 해안 절벽', lat: 26.4410, lng: 127.7130 },
-        { id: 'c_att5', group: '관광지', name: '가쓰렌성터', category: '관광지', desc: '류큐왕국 시대의 세계유산 성터', lat: 26.3300, lng: 127.8790 },
-        { id: 'c_att6', group: '관광지', name: '나카구스쿠성터', category: '관광지', desc: '웅장한 석벽이 남아 있는 세계유산', lat: 26.3000, lng: 127.7910 },
-        { id: 'c_att7', group: '관광지', name: '자키미성터', category: '관광지', desc: '류큐왕국의 역사적 성터', lat: 26.3970, lng: 127.7430 },
-        { id: 'c_att8', group: '관광지', name: '류큐무라', category: '관광지', desc: '전통 가옥과 류큐 문화 체험 공간', lat: 26.4350, lng: 127.8060 },
-        { id: 'c_att9', group: '관광지', name: '도구치 해변', category: '관광지', desc: '잔잔한 바다와 해변 산책 명소', lat: 26.3400, lng: 127.7500 },
-        { id: 'c_att10', group: '관광지', name: '도카시키 해변 전망대', category: '관광지', desc: '해안 풍경을 감상하는 전망 장소', lat: 26.3300, lng: 127.7500 },
-        { id: 'c_eat1', group: '식당', name: '스테이크하우스 88 차탄점', category: '식당', desc: '오키나와 대표 스테이크 전문점', lat: 26.3150, lng: 127.7560 },
-        { id: 'c_eat2', group: '식당', name: '블루씰 아이스크림', category: '식당', desc: '오키나와 대표 아이스크림 브랜드', lat: 26.3170, lng: 127.7570 },
-        { id: 'c_eat3', group: '식당', name: '차탄 하버 브루어리', category: '식당', desc: '항구 전망과 다양한 요리', lat: 26.3150, lng: 127.7460 },
-        { id: 'c_eat4', group: '식당', name: '지바고 커피 주변 레스토랑', category: '식당', desc: '미국식 브런치와 해변 식사 공간', lat: 26.3180, lng: 127.7570 },
-        { id: 'c_eat5', group: '식당', name: '하마노야', category: '식당', desc: '오키나와 전통 음식과 소바', lat: 26.4450, lng: 127.8060 },
-        { id: 'c_eat6', group: '식당', name: '피자 인더스트리', category: '식당', desc: '피자와 전망을 함께 즐기는 식당', lat: 26.3950, lng: 127.7460 },
-        { id: 'c_eat7', group: '식당', name: '잔파 로얄 주변 레스토랑', category: '식당', desc: '리조트 주변 해산물과 다양한 요리', lat: 26.4400, lng: 127.7100 },
-        { id: 'c_eat8', group: '식당', name: '고자 시내 이자카야', category: '식당', desc: '오키나와 전통 안주와 현지 분위기', lat: 26.3350, lng: 127.8010 },
-        { id: 'c_eat9', group: '식당', name: '킹 타코스', category: '식당', desc: '오키나와 대표 타코라이스 전문점', lat: 26.3540, lng: 127.8000 },
-        { id: 'c_eat10', group: '식당', name: '차탄 데포아일랜드 레스토랑', category: '식당', desc: '해산물, 스테이크, 양식 레스토랑', lat: 26.3160, lng: 127.7580 },
-        { id: 'c_caf1', group: '카페', name: 'BANTA CAFE', category: '카페', desc: '절벽 위에서 바다를 바라보는 대형 카페', lat: 26.4070, lng: 127.7240 },
-        { id: 'c_caf2', group: '카페', name: '지바고 커피 웍스', category: '카페', desc: '미국 서부 스타일의 스페셜티 커피', lat: 26.3170, lng: 127.7570 },
-        { id: 'c_caf3', group: '카페', name: '굿데이 커피', category: '카페', desc: '브런치와 커피가 유명한 카페', lat: 26.3260, lng: 127.7520 },
-        { id: 'c_caf4', group: '카페', name: '씨사이드 카페 한잔', category: '카페', desc: '바다 전망을 즐기는 카페', lat: 26.3200, lng: 127.7600 },
-        { id: 'c_caf5', group: '카페', name: '하와이안 팬케이크 하우스', category: '카페', desc: '하와이식 팬케이크와 디저트', lat: 26.3170, lng: 127.7570 },
-        { id: 'c_caf6', group: '카페', name: '더 칼리포니아', category: '카페', desc: '미국 서부 스타일의 카페 공간', lat: 26.3150, lng: 127.7560 },
-        { id: 'c_caf7', group: '카페', name: '카페 츄라미', category: '카페', desc: '오키나와 디저트와 음료', lat: 26.4350, lng: 127.8060 },
-        { id: 'c_caf8', group: '카페', name: '온나 블루 카페', category: '카페', desc: '리조트 분위기의 바다 전망 카페', lat: 26.4400, lng: 127.8100 },
-        { id: 'c_caf9', group: '카페', name: '스타벅스 차탄점', category: '카페', desc: '해안 드라이브 중 들르기 좋은 카페', lat: 26.3160, lng: 127.7560 },
-        { id: 'c_caf10', group: '카페', name: '카페 난조', category: '카페', desc: '자연과 해안 풍경을 즐기는 휴식 공간', lat: 26.3500, lng: 127.8000 },
-        { id: 'c_shp1', group: '쇼핑', name: '데포아일랜드', category: '쇼핑', desc: '아메리칸 빌리지의 대표 쇼핑 공간', lat: 26.3160, lng: 127.7580 },
-        { id: 'c_shp2', group: '쇼핑', name: '이온몰 오키나와 라이컴', category: '쇼핑', desc: '대형 복합 쇼핑몰', lat: 26.3150, lng: 127.7970 },
-        { id: 'c_shp3', group: '쇼핑', name: '파르코시티', category: '쇼핑', desc: '대형 쇼핑몰과 다양한 브랜드', lat: 26.2580, lng: 127.6990 },
-        { id: 'c_shp4', group: '쇼핑', name: '아메리칸 빌리지 쇼핑거리', category: '쇼핑', desc: '패션, 기념품, 잡화 쇼핑', lat: 26.3170, lng: 127.7570 },
-        { id: 'c_shp5', group: '쇼핑', name: '아메리칸 디포', category: '쇼핑', desc: '빈티지 의류와 미국식 소품', lat: 26.3160, lng: 127.7570 },
-        { id: 'c_shp6', group: '쇼핑', name: '플라자 하우스', category: '쇼핑', desc: '오키나와의 역사 깊은 쇼핑센터', lat: 26.3180, lng: 127.8000 },
-        { id: 'c_shp7', group: '쇼핑', name: '이온몰 구스쿠', category: '쇼핑', desc: '현지 생활용품과 식품 쇼핑', lat: 26.3600, lng: 127.8010 },
-        { id: 'c_shp8', group: '쇼핑', name: '우루마 이온몰', category: '쇼핑', desc: '쇼핑과 식사를 함께 즐기는 공간', lat: 26.3650, lng: 127.8270 },
-        { id: 'c_shp9', group: '쇼핑', name: '요미탄 도자기 마을', category: '쇼핑', desc: '오키나와 전통 도자기 구매', lat: 26.3960, lng: 127.7450 },
-        { id: 'c_shp10', group: '쇼핑', name: '미하마 쇼핑 스트리트', category: '쇼핑', desc: '패션과 액세서리, 기념품 쇼핑', lat: 26.3170, lng: 127.7580 },
-        { id: 'c_act1', group: '액티비티', name: '푸른 동굴 스노클링', category: '액티비티', desc: '푸른빛 바닷속에서 해양생물 감상', lat: 26.4460, lng: 127.7790 },
-        { id: 'c_act2', group: '액티비티', name: '푸른 동굴 스쿠버다이빙', category: '액티비티', desc: '전문 강사와 함께하는 다이빙', lat: 26.4460, lng: 127.7790 },
-        { id: 'c_act3', group: '액티비티', name: '마에다곶 해양 액티비티', category: '액티비티', desc: '다이빙과 스노클링 명소', lat: 26.4460, lng: 127.7790 },
-        { id: 'c_act4', group: '액티비티', name: '만자모 일몰 감상', category: '액티비티', desc: '서쪽 해안의 아름다운 일몰 감상', lat: 26.5040, lng: 127.8520 },
-        { id: 'c_act5', group: '액티비티', name: '아메리칸 빌리지 야경', category: '액티비티', desc: '야경과 쇼핑, 거리 사진 촬영', lat: 26.3170, lng: 127.7570 },
-        { id: 'c_act6', group: '액티비티', name: '잔파곶 해안 산책', category: '액티비티', desc: '절벽과 바다를 따라 걷는 산책', lat: 26.4410, lng: 127.7130 },
-        { id: 'c_act7', group: '액티비티', name: '카약 체험', category: '액티비티', desc: '해안과 바다에서 카약 즐기기', lat: 26.4500, lng: 127.8100 },
-        { id: 'c_act8', group: '액티비티', name: '류큐무라 전통문화 체험', category: '액티비티', desc: '전통 의상과 공예, 공연 체험', lat: 26.4350, lng: 127.8060 },
-        { id: 'c_act9', group: '액티비티', name: '가쓰렌성터 역사 탐방', category: '액티비티', desc: '류큐왕국의 역사와 전망 감상', lat: 26.3300, lng: 127.8790 },
-        { id: 'c_act10', group: '액티비티', name: '우루마 해중도로 드라이브', category: '액티비티', desc: '바다 위를 달리는 특별한 드라이브', lat: 26.3300, lng: 127.9300 }
-    ],
-    north: [
-        { id: 'n_att1', group: '관광지', name: '츄라우미 수족관', category: '관광지', desc: '고래상어와 대형 수조로 유명한 수족관', lat: 26.6940, lng: 127.8770 },
-        { id: 'n_att2', group: '관광지', name: '코우리섬', category: '관광지', desc: '에메랄드빛 바다와 아름다운 섬', lat: 26.6970, lng: 128.0170 },
-        { id: 'n_att3', group: '관광지', name: '코우리 대교', category: '관광지', desc: '바다 위를 달리는 아름다운 드라이브 코스', lat: 26.6870, lng: 128.0180 },
-        { id: 'n_att4', group: '관광지', name: '하트록', category: '관광지', desc: '하트 모양 바위로 유명한 사진 명소', lat: 26.7060, lng: 128.0210 },
-        { id: 'n_att5', group: '관광지', name: '비세 후쿠기 가로수길', category: '관광지', desc: '전통 가옥과 후쿠기 나무가 이어지는 길', lat: 26.7040, lng: 127.8830 },
-        { id: 'n_att6', group: '관광지', name: '나키진성터', category: '관광지', desc: '세계유산으로 지정된 류큐왕국 성터', lat: 26.6910, lng: 127.9290 },
-        { id: 'n_att7', group: '관광지', name: '세소코섬', category: '관광지', desc: '아름다운 백사장과 투명한 바다', lat: 26.6400, lng: 127.8580 },
-        { id: 'n_att8', group: '관광지', name: '해양박람회 기념공원', category: '관광지', desc: '수족관, 식물원, 해변을 갖춘 공원', lat: 26.6940, lng: 127.8770 },
-        { id: 'n_att9', group: '관광지', name: '헤도곶', category: '관광지', desc: '오키나와 최북단의 해안 절벽', lat: 26.8700, lng: 128.2630 },
-        { id: 'n_att10', group: '관광지', name: '다이세키린잔', category: '관광지', desc: '독특한 석회암 바위와 아열대 숲', lat: 26.8500, lng: 128.2550 },
-        { id: 'n_eat1', group: '식당', name: '플리퍼 스테이크 하우스', category: '식당', desc: '나고 지역의 유명 스테이크 전문점', lat: 26.5970, lng: 127.9790 },
-        { id: 'n_eat2', group: '식당', name: '키시모토 식당', category: '식당', desc: '전통 오키나와 소바 전문점', lat: 26.6600, lng: 127.8910 },
-        { id: 'n_eat3', group: '식당', name: '카이호우마루', category: '식당', desc: '해산물 요리를 즐기기 정장 식당', lat: 26.6850, lng: 127.8840 },
-        { id: 'n_eat4', group: '식당', name: '코우리 오션 타워 레스토랑', category: '식당', desc: '바다 전망을 즐기는 레스토랑', lat: 26.6970, lng: 128.0170 },
-        { id: 'n_eat5', group: '식당', name: '야마하라 소바', category: '식당', desc: '현지 스타일의 오키나와 소바', lat: 26.5910, lng: 127.9770 },
-        { id: 'n_eat6', group: '식당', name: '나고 파인애플 파크 레스토랑', category: '식당', desc: '파인애플을 활용한 디저트와 음식', lat: 26.6110, lng: 127.9580 },
-        { id: 'n_eat7', group: '식당', name: '모토부 목장 레스토랑', category: '식당', desc: '오키나와 와규와 스테이크', lat: 26.6600, lng: 127.8900 },
-        { id: 'n_eat8', group: '식당', name: '하나사키 마르쉐 식당가', category: '식당', desc: '해산물과 지역 먹거리', lat: 26.6760, lng: 127.8820 },
-        { id: 'n_eat9', group: '식당', name: '나고 사쿠라 식당', category: '식당', desc: '현지 일본식 식당', lat: 26.5900, lng: 127.9780 },
-        { id: 'n_eat10', group: '식당', name: '코우리섬 해산물 식당가', category: '식당', desc: '신선한 해산물과 오션뷰 식사', lat: 26.6960, lng: 128.0170 },
-        { id: 'n_caf1', group: '카페', name: '코우리 오션 브리즈', category: '카페', desc: '바다를 바라보며 커피를 즐기는 카페', lat: 26.6960, lng: 128.0170 },
-        { id: 'n_caf2', group: '카페', name: '카페 차하야부', category: '카페', desc: '자연 속에서 여유롭게 즐기는 카페', lat: 26.6800, lng: 127.9000 },
-        { id: 'n_caf3', group: '카페', name: '카페 오션 블루', category: '카페', desc: '츄라우미 수족관 주변 바다 전망 카페', lat: 26.6940, lng: 127.8770 },
-        { id: 'n_caf4', group: '카페', name: '카페 하마베', category: '카페', desc: '해안 풍경을 감상하는 휴식 공간', lat: 26.6700, lng: 127.8900 },
-        { id: 'n_caf5', group: '카페', name: '코우리 슈퍼 커피', category: '카페', desc: '섬의 풍경을 즐기는 커피숍', lat: 26.6970, lng: 128.0170 },
-        { id: 'n_caf6', group: '카페', name: '카페 이차라', category: '카페', desc: '숲속의 조용한 분위기와 식사', lat: 26.6730, lng: 127.9100 },
-        { id: 'n_caf7', group: '카페', name: '피자 카페 오키나와', category: '카페', desc: '자연 속에서 피자와 음료를 즐기는 공간', lat: 26.6500, lng: 127.8800 },
-        { id: 'n_caf8', group: '카페', name: '카페 하나사키', category: '카페', desc: '해안 전망과 디저트', lat: 26.6750, lng: 127.8830 },
-        { id: 'n_caf9', group: '카페', name: '나고 파인애플 파크 카페', category: '카페', desc: '파인애플 디저트와 음료', lat: 26.6110, lng: 127.9580 },
-        { id: 'n_caf10', group: '카페', name: '코우리섬 해변 카페', category: '카페', desc: '바다를 보며 쉬기 좋은 카페', lat: 26.6950, lng: 128.0150 },
-        { id: 'n_shp1', group: '쇼핑', name: '나고 이온몰', category: '쇼핑', desc: '북부지역의 대표 쇼핑몰', lat: 26.5880, lng: 127.9800 },
-        { id: 'n_shp2', group: '쇼핑', name: '나고 파인애플 파크 기념품점', category: '쇼핑', desc: '파인애플 과자와 지역 특산품', lat: 26.6110, lng: 127.9580 },
-        { id: 'n_shp3', group: '쇼핑', name: '코우리 오션 타워 기념품점', category: '쇼핑', desc: '섬 관련 기념품과 특산품', lat: 26.6970, lng: 128.0170 },
-        { id: 'n_shp4', group: '쇼핑', name: '츄라우미 수족관 기념품점', category: '쇼핑', desc: '해양생물 캐릭터와 기념품', lat: 26.6940, lng: 127.8770 },
-        { id: 'n_shp5', group: '쇼핑', name: '하나사키 마르쉐', category: '쇼핑', desc: '식품, 특산품, 기념품 쇼핑', lat: 26.6760, lng: 127.8820 },
-        { id: 'n_shp6', group: '쇼핑', name: '나고 시내 쇼핑거리', category: '쇼핑', desc: '현지 상점과 생활용품', lat: 26.5910, lng: 127.9780 },
-        { id: 'n_shp7', group: '쇼핑', name: '모토부 시장', category: '쇼핑', desc: '지역 농산물과 특산품', lat: 26.6600, lng: 127.8920 },
-        { id: 'n_shp8', group: '쇼핑', name: '얀바루 휴게소', category: '쇼핑', desc: '지역 특산물과 농산품 판매', lat: 26.7450, lng: 128.1770 },
-        { id: 'n_shp9', group: '쇼핑', name: '오기미 휴게소', category: '쇼핑', desc: '시콰사 등 지역 특산품 판매', lat: 26.7000, lng: 128.1190 },
-        { id: 'n_shp10', group: '쇼핑', name: '코우리섬 기념품 상점', category: '쇼핑', desc: '섬의 특산품과 기념품', lat: 26.6970, lng: 128.0170 },
-        { id: 'n_act1', group: '액티비티', name: '츄라우미 수족관 관람', category: '액티비티', desc: '고래상어와 다양한 해양생물 관람', lat: 26.6940, lng: 127.8770 },
-        { id: 'n_act2', group: '액티비티', name: '코우리섬 드라이브', category: '액티비티', desc: '코우리 대교를 건너는 드라이브', lat: 26.6970, lng: 128.0170 },
-        { id: 'n_act3', group: '액티비티', name: '코우리섬 스노클링', category: '액티비티', desc: '맑고 투명한 바다에서 해양 체험', lat: 26.6950, lng: 128.0150 },
-        { id: 'n_act4', group: '액티비티', name: '세소코섬 해양 스포츠', category: '액티비티', desc: '스노클링과 해변 액티비티', lat: 26.6400, lng: 127.8580 },
-        { id: 'n_act5', group: '액티비티', name: '비세 후쿠기 숲길 자전거', category: '액티비티', desc: '전통마을과 숲길 자전거 탐방', lat: 26.7040, lng: 127.8830 },
-        { id: 'n_act6', group: '액티비티', name: '얀바루 숲 트레킹', category: '액티비티', desc: '아열대 숲과 희귀 동식물 관찰', lat: 26.7450, lng: 128.1700 },
-        { id: 'n_act7', group: '액티비티', name: '맹그로브 카약', category: '액티비티', desc: '강과 맹그로브 숲 탐험', lat: 26.6300, lng: 128.0200 },
-        { id: 'n_act8', group: '액티비티', name: '다이세키린잔 트레킹', category: '액티비티', desc: '기암괴석과 자연 산책', lat: 26.8500, lng: 128.2550 },
-        { id: 'n_act9', group: '액티비티', name: '헤도곶 해안 감상', category: '액티비티', desc: '오키나와 최북단의 자연경관 감상', lat: 26.8700, lng: 128.2630 },
-        { id: 'n_act10', group: '액티비티', name: '고래 관찰 투어', category: '액티비티', desc: '겨울철 혹등고래 관찰 프로그램', lat: 26.5900, lng: 127.9800 }
-    ]
+    south: [],
+    central: [],
+    north: []
 };
         let placesData = JSON.parse(JSON.stringify(defaultPlacesData));
 
@@ -764,7 +661,7 @@ const defaultPlacesData = {
                             let target = placesData[region].find(p => p.id === customPlace.id);
                             if (target) {
                                 target.recommended = customPlace.recommended;
-                            } else if (customPlace.id && customPlace.id.startsWith('custom-')) {
+                            } else {
                                 placesData[region].push(customPlace);
                             }
                         });
@@ -788,6 +685,11 @@ const defaultPlacesData = {
 
         let headerFp = null;
         let settingsFp = null;
+
+        // 장소 선택 모달 관련 상태 변수
+        let activeSelectModalDayIdx = 0;
+        let selectModalRegion = 'south';
+        let selectModalCategory = '관광지';
 
         // 경비 정산 변수
         let participants = ["찬팅", "미르", "마스터", "샤인"];
@@ -1382,7 +1284,7 @@ const defaultPlacesData = {
 
             let html = '';
             if (filteredPlaces.length === 0) {
-                html = `<div class="col-span-2 text-center py-12 text-slate-400 text-sm">해당 카테고리에 등록된 장소가 없습니다.</div>`;
+                html = `<div class="col-span-2 text-center py-12 text-slate-400 text-sm">해당 카테고리에 등록된 장소가 없습니다. 상단의 '장소 직접 입력' 버튼을 눌러 추가해보세요!</div>`;
             } else {
                 filteredPlaces.forEach((p, idx) => {
                     let singleMapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' 오키나와')}`;
@@ -1403,7 +1305,7 @@ const defaultPlacesData = {
                         <p class="text-[11px] text-slate-500 leading-relaxed break-words line-clamp-2 w-full min-w-0 flex-1 mb-2">${p.desc}</p>
                         
                         <div class="mt-auto flex items-center justify-between border-t border-slate-100 pt-2 gap-1 w-full">
-                            <button onclick="addPlaceFromBrowser('${p.id}')" class="shrink-0 bg-cyan-600 hover:bg-cyan-700 text-white text-[11px] font-bold w-7 h-7 rounded flex items-center justify-center transition shadow-sm">
+                            <button onclick="addPlaceFromBrowser('${p.id}')" class="shrink-0 bg-cyan-600 hover:bg-cyan-700 text-white text-[11px] font-bold w-7 h-7 rounded flex items-center justify-center transition shadow-sm" title="일정에 추가">
                                 <i class="fa-solid fa-plus"></i>
                             </button>
                             <div class="flex items-center gap-0.5 shrink-0 justify-end">
@@ -1424,7 +1326,7 @@ const defaultPlacesData = {
             if (confirm('이 장소를 목록에서 삭제하시겠습니까?\n(일정표에 이미 추가된 장소는 유지됩니다)')) {
                 if (placesData[currentRegion]) {
                     placesData[currentRegion] = placesData[currentRegion].filter(p => p.id !== placeId);
-                    renderPlaces(); saveDataToLocalStorage();
+                    renderPlaces(); renderSelectModalPlaces(); saveDataToLocalStorage();
                 }
             }
         }
@@ -1438,19 +1340,20 @@ const defaultPlacesData = {
             let targetPlace = Object.values(placesData).flat().find(p => p.id === placeId);
             if(targetPlace) {
                 let eventObj = JSON.parse(JSON.stringify(targetPlace));
-                eventObj.type = (addMode === 'hotel' || targetPlace.group === '호텔') ? 'hotel' : 'place';
+                eventObj.type = (targetPlace.group === '호텔') ? 'hotel' : 'place';
                 eventObj.transport = '운전';
                 eventObj.memo = ''; 
                 
                 let targetDay = tripData.days[tripData.activeDay];
 
-                if (addMode === 'hotel') {
+                if (targetPlace.group === '호텔') {
                     if (targetDay.events.length > 0 && (targetDay.events[0].type === 'hotel' || targetDay.events[0].group === '호텔')) {
                         targetDay.events[0] = eventObj;
                     } else { targetDay.events.unshift(eventObj); }
                     alert(`[${targetPlace.name}] 숙소가 Day ${targetDay.dayNum} 일정에 등록되었습니다!`);
                 } else {
                     targetDay.events.push(eventObj);
+                    alert(`[${targetPlace.name}] 장소가 Day ${targetDay.dayNum} 일정에 추가되었습니다!`);
                 }
                 
                 renderPlanner(); saveDataToLocalStorage(); 
@@ -1518,7 +1421,7 @@ const defaultPlacesData = {
             } else {
                 if (!isAllView) {
                     eventsHtml += `<div class="px-3 sm:px-4 py-1.5 bg-white">
-                        <button onclick="openTimelineAddModal('hotel', ${dayIdx})" class="w-full bg-slate-50 text-indigo-600 py-2 px-2 rounded-xl font-bold text-[13px] sm:text-[14px] transition border border-dashed border-indigo-300 flex items-center justify-center gap-1.5 shadow-sm hover:bg-indigo-50"><i class="fa-solid fa-bed"></i> Day ${currentDayObj.dayNum} 숙소 추가</button>
+                        <button onclick="openSelectPlaceModal(${dayIdx})" class="w-full bg-slate-50 text-indigo-600 py-2 px-2 rounded-xl font-bold text-[13px] sm:text-[14px] transition border border-dashed border-indigo-300 flex items-center justify-center gap-1.5 shadow-sm hover:bg-indigo-50"><i class="fa-solid fa-bed"></i> Day ${currentDayObj.dayNum} 숙소 추가</button>
                     </div>`;
                 }
             }
@@ -1527,7 +1430,7 @@ const defaultPlacesData = {
             const actualEvents = currentDayObj.events.slice(startIndex);
 
             if (actualEvents.length === 0 && !hasHotel) {
-                let emptyAddBtn = isAllView ? '' : `<button onclick="openTimelineAddModal('place', ${dayIdx})" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-sm sm:text-base px-5 py-2.5 rounded-lg shadow-sm transition">우측에서 장소 찾아 추가하기</button>`;
+                let emptyAddBtn = isAllView ? '' : `<button onclick="openSelectPlaceModal(${dayIdx})" class="bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-sm sm:text-base px-5 py-2.5 rounded-lg shadow-sm transition">등록된 장소에서 선택하여 추가</button>`;
                 eventsHtml += `<div class="py-12 mx-4 sm:mx-6 mt-4 bg-white rounded-2xl border border-dashed border-slate-300 text-center flex flex-col items-center justify-center"><i class="fa-solid fa-map-location-dot text-4xl text-slate-200 mb-3"></i><p class="text-sm sm:text-base text-slate-500 mb-4">등록된 방문 순서가 없습니다.</p>${emptyAddBtn}</div>`;
             } else {
                 actualEvents.forEach((evt, subIdx) => {
@@ -1601,7 +1504,7 @@ const defaultPlacesData = {
 
                 if (!isAllView) {
                     eventsHtml += `<div class="px-3 sm:px-4 py-2 bg-white">
-                        <button onclick="openTimelineAddModal('place', ${dayIdx})" class="w-full bg-slate-50 text-slate-600 py-2.5 px-2 rounded-xl font-bold text-[13px] sm:text-[14px] transition border border-dashed border-slate-300 flex items-center justify-center gap-1.5 shadow-sm hover:bg-slate-100"><i class="fa-solid fa-arrow-pointer"></i> <span class="tracking-tight">우측에서 장소 찾아 추가하기</span></button>
+                        <button onclick="openSelectPlaceModal(${dayIdx})" class="w-full bg-slate-50 text-slate-600 py-2.5 px-2 rounded-xl font-bold text-[13px] sm:text-[14px] transition border border-dashed border-slate-300 flex items-center justify-center gap-1.5 shadow-sm hover:bg-slate-100"><i class="fa-solid fa-arrow-pointer"></i> <span class="tracking-tight">등록된 장소에서 선택하여 추가</span></button>
                     </div>`;
                 }
             }
@@ -1629,7 +1532,7 @@ const defaultPlacesData = {
             let toggleBtnBg = isPlaceMode ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-indigo-600 hover:bg-indigo-700';
 
             let actionButtonsHtml = `
-                <button onclick="openAddModal()" class="bg-indigo-500 text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-[14px] font-bold shadow-sm flex items-center justify-center transition hover:bg-indigo-600" title="장소 추가"><i class="fa-solid fa-plus sm:mr-1.5"></i><span class="hidden sm:inline">추가</span></button>
+                <button onclick="openSelectPlaceModal(${dayIdx})" class="bg-indigo-500 text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-[14px] font-bold shadow-sm flex items-center justify-center transition hover:bg-indigo-600" title="등록된 장소에서 선택"><i class="fa-solid fa-plus sm:mr-1.5"></i><span class="hidden sm:inline">추가</span></button>
                 <button onclick="toggleRightPanel()" class="${toggleBtnBg} text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-[14px] font-bold shadow-sm flex items-center justify-center transition" title="${toggleBtnText} 토글"><i class="fa-solid ${toggleBtnIcon} sm:mr-1.5"></i><span class="hidden sm:inline">${toggleBtnText}</span></button>
                 ${isAllView ? '' : `<button onclick="manualSaveData()" class="bg-slate-800 text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-[14px] font-bold shadow-sm flex items-center justify-center transition hover:bg-slate-900" title="저장"><i class="fa-solid fa-floppy-disk sm:mr-1.5"></i><span class="hidden sm:inline">저장</span></button>`}
                 <button onclick="openDayMapModal(${dayIdx})" class="bg-sky-500 text-white w-8 h-8 sm:w-auto sm:px-3 sm:py-1.5 rounded-lg text-[14px] font-bold shadow-sm flex items-center justify-center transition hover:bg-sky-600" title="지도보기"><i class="fa-solid fa-map-location-dot sm:mr-1.5"></i><span class="hidden sm:inline">지도</span></button>
@@ -1729,15 +1632,16 @@ const defaultPlacesData = {
                 validEvents.forEach((evt, idx) => {
                     let lat = parseFloat(evt.lat); let lng = parseFloat(evt.lng); bounds.push([lat, lng]);
                     let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="custom-map-marker">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
-                    let popupContent = `<div style="padding: 4px; min-width: 150px;">
+                    
+                    let popupContent = `<div style="padding: 4px; width: 220px; max-width: 220px; word-break: break-word;">
                         <span style="background: #0891b2; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소</span>
-                        <h4 style="font-weight: bold; font-size: 14px; margin: 6px 0 4px 0; color: #0f172a;">${evt.name}</h4>
-                        <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">${evt.desc || '설명 없음'}</p>
+                        <h4 style="font-weight: bold; font-size: 14px; margin: 6px 0 4px 0; color: #0f172a; word-break: break-word;">${evt.name}</h4>
+                        <p style="font-size: 12px; color: #64748b; margin-bottom: 8px; word-break: break-word; line-height: 1.4;">${evt.desc || '설명 없음'}</p>
                         <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="display: block; background: #2563eb; color: white; text-align: center; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-decoration: none;">구글 맵 보기</a>
                     </div>`;
-                    L.marker([lat, lng], { icon: numberIcon }).addTo(leafletMap).bindPopup(popupContent);
+
+                    L.marker([lat, lng], { icon: numberIcon }).addTo(leafletMap).bindPopup(popupContent, { maxWidth: 240 });
                     
-                    // 줌 레벨을 변경하지 않고 panTo로 위치만 부드럽게 이동하며 팝업 열기
                     listHtml += `<div class="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-1.5 rounded-lg transition border border-transparent hover:border-slate-200" onclick="leafletMap.panTo([${lat}, ${lng}]); leafletMap.eachLayer(function(l){if(l.getLatLng && l.getLatLng().lat === ${lat} && l.getLatLng().lng === ${lng}){l.openPopup();}});">
                         <span class="w-6 h-6 bg-[#0891b2] text-white rounded-full flex items-center justify-center text-[11px] font-bold shrink-0">${idx + 1}</span>
                         <span class="font-bold text-slate-700 text-sm truncate" title="${evt.name}">${evt.name}</span>
@@ -1782,15 +1686,72 @@ const defaultPlacesData = {
                     let markerBgColor = evt.recommended ? '#ef4444' : '#10b981';
 
                     let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="${markerClass}" style="background:${markerBgColor};">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
-                    let popupContent = `<div style="padding: 4px; min-width: 150px;">
+                    
+                    let popupContent = `<div style="padding: 4px; width: 220px; max-width: 220px; word-break: break-word;">
                         <span style="background: ${markerBgColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소 ${evt.recommended ? '(추천)' : ''}</span>
-                        <h4 style="font-weight: bold; font-size: 14px; margin: 6px 0 4px 0; color: #0f172a;">${evt.name}</h4>
-                        <p style="font-size: 12px; color: #64748b; margin-bottom: 8px;">${evt.desc || '설명 없음'}</p>
+                        <h4 style="font-weight: bold; font-size: 14px; margin: 6px 0 4px 0; color: #0f172a; word-break: break-word;">${evt.name}</h4>
+                        <p style="font-size: 12px; color: #64748b; margin-bottom: 8px; word-break: break-word; line-height: 1.4;">${evt.desc || '설명 없음'}</p>
                         <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="display: block; background: #2563eb; color: white; text-align: center; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-decoration: none;">구글 맵 보기</a>
                     </div>`;
-                    L.marker([lat, lng], { icon: numberIcon }).addTo(leafletMap).bindPopup(popupContent);
+
+                    L.marker([lat, lng], { icon: numberIcon }).addTo(leafletMap).bindPopup(popupContent, { maxWidth: 240 });
                     
-                    // 줌 레벨을 변경하지 않고 panTo로 위치만 부드럽게 이동하며 팝업 열기
+                    listHtml += `<div class="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-1.5 rounded-lg transition border border-transparent hover:border-slate-200" onclick="leafletMap.panTo([${lat}, ${lng}]); leafletMap.eachLayer(function(l){if(l.getLatLng && l.getLatLng().lat === ${lat} && l.getLatLng().lng === ${lng}){l.openPopup();}});">
+                        <span class="w-6 h-6 text-white rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style="background:${markerBgColor};">${idx + 1}</span>
+                        <span class="font-bold text-slate-700 text-sm truncate" title="${evt.name}">${evt.name}</span>
+                    </div>`;
+                });
+                
+                if (bounds.length > 0) leafletMap.fitBounds(bounds, { padding: [50, 50] });
+                else leafletMap.setView([26.3, 127.8], 10);
+                
+                addCurrentLocationToMap(leafletMap, bounds);
+                
+                listHtml += '</div>';
+                const listContainer = document.getElementById('mapPlacesList');
+                listContainer.innerHTML = listHtml;
+                listContainer.classList.remove('hidden');
+
+            }, 100);
+        }
+
+        function openSelectCategoryMapModal() {
+            const places = placesData[selectModalRegion] || [];
+            const filteredPlaces = places.filter(p => p.group === selectModalCategory);
+            
+            if (filteredPlaces.length === 0) { alert('지도에 표시할 장소가 없습니다.'); return; }
+
+            const regionName = selectModalRegion === 'south' ? '남부' : (selectModalRegion === 'central' ? '중부' : '북부');
+            document.getElementById('map-modal-title').innerHTML = `<i class="fa-solid fa-map-location-dot mr-2"></i>[${regionName}] ${selectModalCategory} 장소 보기`;
+            document.getElementById('mapModal').classList.remove('hidden');
+
+            setTimeout(() => {
+                if (leafletMap) { leafletMap.remove(); leafletMap = null; }
+
+                leafletMap = L.map('dayMapContainer', { zoomControl: false });
+                L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', { subdomains: ['0', '1', '2', '3'], maxZoom: 20, attribution: '&copy; Google Maps' }).addTo(leafletMap);
+                let bounds = [];
+                let listHtml = '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">';
+
+                filteredPlaces.forEach((evt, idx) => {
+                    let lat = parseFloat(evt.lat); let lng = parseFloat(evt.lng);
+                    if(isNaN(lat) || isNaN(lng)) return;
+                    bounds.push([lat, lng]);
+                    
+                    let markerClass = evt.recommended ? 'custom-map-marker-red' : 'custom-map-marker';
+                    let markerBgColor = evt.recommended ? '#ef4444' : '#10b981';
+
+                    let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="${markerClass}" style="background:${markerBgColor};">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
+                    
+                    let popupContent = `<div style="padding: 4px; width: 220px; max-width: 220px; word-break: break-word;">
+                        <span style="background: ${markerBgColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소 ${evt.recommended ? '(추천)' : ''}</span>
+                        <h4 style="font-weight: bold; font-size: 14px; margin: 6px 0 4px 0; color: #0f172a; word-break: break-word;">${evt.name}</h4>
+                        <p style="font-size: 12px; color: #64748b; margin-bottom: 8px; word-break: break-word; line-height: 1.4;">${evt.desc || '설명 없음'}</p>
+                        <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="display: block; background: #2563eb; color: white; text-align: center; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-decoration: none;">구글 맵 보기</a>
+                    </div>`;
+
+                    L.marker([lat, lng], { icon: numberIcon }).addTo(leafletMap).bindPopup(popupContent, { maxWidth: 240 });
+                    
                     listHtml += `<div class="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-1.5 rounded-lg transition border border-transparent hover:border-slate-200" onclick="leafletMap.panTo([${lat}, ${lng}]); leafletMap.eachLayer(function(l){if(l.getLatLng && l.getLatLng().lat === ${lat} && l.getLatLng().lng === ${lng}){l.openPopup();}});">
                         <span class="w-6 h-6 text-white rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style="background:${markerBgColor};">${idx + 1}</span>
                         <span class="font-bold text-slate-700 text-sm truncate" title="${evt.name}">${evt.name}</span>
@@ -1814,6 +1775,141 @@ const defaultPlacesData = {
             document.getElementById('mapModal').classList.add('hidden'); 
             if (leafletMap) { leafletMap.remove(); leafletMap = null; userLocationMarker = null; } 
             document.getElementById('mapPlacesList').classList.add('hidden');
+        }
+
+        // --- 등록된 장소 선택 모달 로직 (이미지 UI 100% 반영) ---
+        function openSelectPlaceModal(dayIdx) {
+            activeSelectModalDayIdx = dayIdx;
+            const dayObj = tripData.days[dayIdx];
+            document.getElementById('select-modal-day-info').innerText = `Day ${dayObj.dayNum} (${dayObj.date}) 일정에 추가 중`;
+            document.getElementById('select-modal-subtitle').innerText = `Day ${dayObj.dayNum} 일정에 장소가 추가됩니다.`;
+            selectModalRegion = 'south';
+            selectModalCategory = '관광지';
+            updateSelectModalTabs();
+            renderSelectModalPlaces();
+            document.getElementById('selectPlaceModal').classList.remove('hidden');
+        }
+
+        function closeSelectPlaceModal() {
+            document.getElementById('selectPlaceModal').classList.add('hidden');
+        }
+
+        function switchSelectModalRegion(reg) {
+            selectModalRegion = reg;
+            updateSelectModalTabs();
+            renderSelectModalPlaces();
+        }
+
+        function switchSelectModalCategory(cat) {
+            selectModalCategory = cat;
+            updateSelectModalTabs();
+            renderSelectModalPlaces();
+        }
+
+        function updateSelectModalTabs() {
+            ['south', 'central', 'north'].forEach(reg => {
+                const btn = document.getElementById(`sel-btn-${reg}`);
+                if (btn) {
+                    btn.className = reg === selectModalRegion 
+                        ? 'flex-1 py-2 rounded-lg text-[13px] font-bold transition bg-white text-cyan-700 shadow-sm' 
+                        : 'flex-1 py-2 rounded-lg text-[13px] font-bold transition text-slate-500 hover:text-slate-800';
+                }
+            });
+
+            ['관광지', '식당', '카페', '쇼핑', '액티비티', '호텔'].forEach(cat => {
+                const btn = document.getElementById(`sel-cat-${cat}`);
+                if (btn) {
+                    btn.className = cat === selectModalCategory 
+                        ? 'px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-cyan-600 text-white shadow-sm' 
+                        : 'px-3 py-1.5 rounded-lg text-[12px] font-bold transition bg-white border border-slate-200 text-slate-600 hover:bg-slate-100';
+                }
+            });
+
+            const catMapBtn = document.getElementById('selectCategoryMapBtn');
+            if(catMapBtn) catMapBtn.innerHTML = `<i class="fa-solid fa-map-location-dot"></i> 분류(${selectModalCategory}) 지도`;
+        }
+
+        function togglePlaceRecommendedFromModal(placeId) {
+            let place = (placesData[selectModalRegion] || []).find(p => p.id === placeId);
+            if (place) {
+                place.recommended = !place.recommended;
+                renderSelectModalPlaces();
+                renderPlaces();
+                saveDataToLocalStorage();
+            }
+        }
+
+        function renderSelectModalPlaces() {
+            const container = document.getElementById('select-places-container');
+            const places = placesData[selectModalRegion] || [];
+            const filteredPlaces = places.filter(p => p.group === selectModalCategory);
+
+            let html = '';
+            if (filteredPlaces.length === 0) {
+                html = `<div class="col-span-2 text-center py-12 text-slate-400 text-sm">해당 카테고리에 등록된 장소가 없습니다. 상단의 '장소 직접 입력' 버튼을 눌러 추가해보세요!</div>`;
+            } else {
+                filteredPlaces.forEach((p, idx) => {
+                    let singleMapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name + ' 오키나와')}`;
+                    let badgeBg = p.recommended ? 'bg-rose-500 text-white' : 'bg-emerald-100 text-emerald-800';
+                    let numBadge = `<span class="${badgeBg} text-[10px] px-1.5 py-0.5 rounded font-extrabold mr-1.5 shrink-0 mt-[2px]">${idx + 1}</span>`;
+                    
+                    let recBtnClass = p.recommended ? 'text-rose-500 bg-rose-50' : 'text-slate-400 hover:bg-slate-100';
+                    let recCheckBtn = `<button onclick="togglePlaceRecommendedFromModal('${p.id}')" class="${recBtnClass} p-1.5 rounded transition" title="${p.recommended ? '추천 해제' : '추천하기'}"><i class="fa-solid fa-heart"></i></button>`;
+
+                    html += `
+                    <div class="min-w-0 bg-white rounded-xl border border-slate-200 shadow-sm flex flex-col p-3 hover:border-cyan-300 transition relative w-full h-full overflow-hidden">
+                        <div class="flex items-start mb-1.5 w-full min-w-0">
+                            ${numBadge}
+                            <h4 class="font-bold text-[13px] sm:text-[14px] text-slate-900 leading-tight break-words flex-1 min-w-0">
+                                <span class="line-clamp-2">${p.name}</span>
+                            </h4>
+                        </div>
+                        <p class="text-[11px] text-slate-500 leading-relaxed break-words line-clamp-2 w-full min-w-0 flex-1 mb-2">${p.desc}</p>
+                        
+                        <div class="mt-auto flex items-center justify-between border-t border-slate-100 pt-2 gap-1 w-full">
+                            <button onclick="addPlaceToDayFromModal('${p.id}')" class="shrink-0 bg-cyan-600 hover:bg-cyan-700 text-white text-[11px] font-bold w-7 h-7 rounded flex items-center justify-center transition shadow-sm" title="일정에 추가">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                            <div class="flex items-center gap-0.5 shrink-0 justify-end">
+                                ${recCheckBtn}
+                                <button onclick="openEditPlaceModal('${selectModalRegion}', '${p.id}')" class="text-amber-500 hover:bg-amber-50 p-1.5 rounded transition" title="장소 정보 수정"><i class="fa-solid fa-pen-to-square"></i></button>
+                                <a href="${singleMapUrl}" target="_blank" class="text-blue-500 hover:bg-blue-50 p-1.5 rounded-full transition" title="구글 맵 보기"><i class="fa-solid fa-map-location-dot"></i></a>
+                                <button onclick="removePlaceItem('${p.id}')" class="text-rose-400 hover:text-rose-600 p-1.5 rounded transition" title="장소 삭제"><i class="fa-solid fa-trash-can"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                });
+            }
+            container.innerHTML = html;
+        }
+
+        function addPlaceToDayFromModal(placeId) {
+            let targetPlace = Object.values(placesData).flat().find(p => p.id === placeId);
+            if (!targetPlace) return;
+
+            let eventObj = JSON.parse(JSON.stringify(targetPlace));
+            eventObj.type = (targetPlace.group === '호텔') ? 'hotel' : 'place';
+            eventObj.transport = '운전';
+            eventObj.memo = '';
+
+            let targetDay = tripData.days[activeSelectModalDayIdx];
+            if (!targetDay) return;
+
+            if (targetPlace.group === '호텔') {
+                if (targetDay.events.length > 0 && (targetDay.events[0].type === 'hotel' || targetDay.events[0].group === '호텔')) {
+                    targetDay.events[0] = eventObj;
+                } else {
+                    targetDay.events.unshift(eventObj);
+                }
+                alert(`[${targetPlace.name}] 숙소가 Day ${targetDay.dayNum} 일정에 등록되었습니다!`);
+            } else {
+                targetDay.events.push(eventObj);
+                alert(`[${targetPlace.name}] 장소가 Day ${targetDay.dayNum} 일정에 추가되었습니다!`);
+            }
+
+            renderPlanner();
+            saveDataToLocalStorage();
         }
 
         function generateDayHtmlForCapture(day) {
@@ -1991,13 +2087,13 @@ const defaultPlacesData = {
                         break; 
                     }
                 }
-                switchRegion(region); switchCategory(group); renderPlaces(); renderPlanner(); saveDataToLocalStorage(); closeAddModal();
+                switchRegion(region); switchCategory(group); renderPlaces(); renderSelectModalPlaces(); renderPlanner(); saveDataToLocalStorage(); closeAddModal();
                 alert(`[${name}] 장소 정보가 수정되었습니다.`);
             } else {
                 const newPlace = { id: 'custom-' + Date.now(), group: group, name: name, category: group === '호텔' ? '호텔/숙소' : '구글 맵 명소', desc: desc, lat: latNum, lng: lngNum, recommended: false };
                 if(!placesData[region]) placesData[region] = []; 
                 placesData[region].push(newPlace);
-                switchRegion(region); switchCategory(group); renderPlaces(); saveDataToLocalStorage(); closeAddModal();
+                switchRegion(region); switchCategory(group); renderPlaces(); renderSelectModalPlaces(); saveDataToLocalStorage(); closeAddModal();
                 alert(`[${name}] 장소가 목록에 등록되었습니다.`);
             }
         }
