@@ -596,14 +596,14 @@
         </div>
     </div>
 
-    <!-- Custom Place Modal (직접 등록 - z-[110]으로 선택 모달 위에도 정상 노출) -->
+    <!-- Custom Place Modal (직접 등록 - 내용 높이에 맞게 자동 조절) -->
     <div id="addPlaceModal" class="hidden fixed inset-0 z-[110] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-            <div id="modal-header-bg" class="bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-4 flex justify-between items-center text-white">
+        <div class="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div id="modal-header-bg" class="bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-4 flex justify-between items-center text-white shrink-0">
                 <h3 id="custom-modal-title" class="font-bold text-base"><i class="fa-solid fa-plus-circle mr-2"></i>새로운 장소 / 호텔 직접 등록</h3>
                 <button onclick="closeAddModal()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <div class="p-5 space-y-4 h-[75vh] sm:h-auto overflow-y-auto custom-scrollbar">
+            <div class="p-5 space-y-4 overflow-y-auto custom-scrollbar">
                 <input type="hidden" id="editingPlaceId" value="">
                 <div>
                     <div class="flex justify-between items-center mb-1">
@@ -651,7 +651,7 @@
                     </div>
                 </div>
                 
-                <div class="pt-3 flex gap-2">
+                <div class="pt-2 flex gap-2">
                     <button type="button" onclick="searchPlaceInGoogleMaps()" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2.5 px-3 rounded-lg text-sm transition shadow-sm shrink-0 flex items-center justify-center" title="구글 맵 검색">
                         <i class="fa-solid fa-magnifying-glass mr-1"></i> 구글맵
                     </button>
@@ -2139,7 +2139,7 @@ const defaultPlacesData = {
             document.getElementById('editingPlaceId').value = '';
             document.getElementById('custom-modal-title').innerHTML = '<i class="fa-solid fa-plus-circle mr-2"></i>새로운 장소 / 호텔 직접 등록';
             document.getElementById('customAddBtn').innerText = '등록하기';
-            document.getElementById('modal-header-bg').className = 'bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-4 flex justify-between items-center text-white';
+            document.getElementById('modal-header-bg').className = 'bg-gradient-to-r from-indigo-500 to-purple-600 px-5 py-4 flex justify-between items-center text-white shrink-0';
             document.getElementById('customPlaceName').value = ''; 
             document.getElementById('customLat').value = ''; 
             document.getElementById('customLng').value = ''; 
@@ -2155,7 +2155,7 @@ const defaultPlacesData = {
             document.getElementById('editingPlaceId').value = place.id;
             document.getElementById('custom-modal-title').innerHTML = '<i class="fa-solid fa-pen-to-square mr-2"></i>장소 정보 수정';
             document.getElementById('customAddBtn').innerText = '수정 완료';
-            document.getElementById('modal-header-bg').className = 'bg-gradient-to-r from-amber-500 to-orange-600 px-5 py-4 flex justify-between items-center text-white';
+            document.getElementById('modal-header-bg').className = 'bg-gradient-to-r from-amber-500 to-orange-600 px-5 py-4 flex justify-between items-center text-white shrink-0';
             document.getElementById('customPlaceName').value = place.name;
             document.getElementById('customPlaceRegion').value = region;
             document.getElementById('customPlaceGroup').value = place.group || '관광지';
