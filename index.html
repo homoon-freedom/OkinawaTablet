@@ -1610,10 +1610,23 @@ const defaultPlacesData = {
             }
         }
 
-        // 즐겨찾기(적색 유지) 및 분류별 색상 반환 함수
-        function getPlaceCategoryColor(evt) {
-            if (evt && evt.recommended) {
-                return '#ef4444'; // 즐겨찾기(추천) 적색 유지
+        // 즐겨찾기 여부 확인 함수 (장소 목록과 일정 모두 최신 상태 반영)
+        function isPlaceFavorite(evt) {
+            if (!evt) return false;
+            if (evt.id) {
+                const found = Object.values(placesData).flat().find(p => p.id === evt.id);
+                if (found) return !!found.recommended;
+            }
+            return !!evt.recommended;
+        }
+
+        // 지도 색상 반환 함수 (일정 지도: 분류별 색상 + 즐겨찾기 적색 / 장소 추가 지도: 검은색 + 즐겨찾기 적색)
+        function getPlaceMapColor(evt, applyCategoryColor = true) {
+            if (isPlaceFavorite(evt)) {
+                return '#ef4444'; // 즐겨찾기(적색)는 두 지도 모두 적용
+            }
+            if (!applyCategoryColor) {
+                return '#000000'; // 장소 추가 지도 기본 검은색
             }
             const group = (evt && (evt.type === 'hotel' || evt.group === '호텔')) ? '호텔' : (evt && evt.group ? evt.group : '관광지');
             const categoryColors = {
@@ -1649,12 +1662,13 @@ const defaultPlacesData = {
 
                 validEvents.forEach((evt, idx) => {
                     let lat = parseFloat(evt.lat); let lng = parseFloat(evt.lng); bounds.push([lat, lng]);
-                    let placeColor = getPlaceCategoryColor(evt);
-                    let markerClass = evt.recommended ? 'custom-map-marker-red' : 'custom-map-marker';
+                    let isFav = isPlaceFavorite(evt);
+                    let placeColor = getPlaceMapColor(evt, true);
+                    let markerClass = isFav ? 'custom-map-marker-red' : 'custom-map-marker';
                     let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="${markerClass}" style="background:${placeColor};">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
                     
                     let popupContent = `<div style="padding: 4px; width: 220px; max-width: 220px; word-break: break-word;">
-                        <span style="background: ${placeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소 ${evt.recommended ? '(즐겨찾기)' : ''}</span>
+                        <span style="background: ${placeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소 ${isFav ? '(즐겨찾기)' : ''}</span>
                         <h4 style="font-weight: bold; font-size: 14px; margin: 6px 0 4px 0; color: #0f172a; word-break: break-word;">${evt.name}</h4>
                         <p style="font-size: 12px; color: #64748b; margin-bottom: 8px; word-break: break-word; line-height: 1.4;">${evt.desc || '설명 없음'}</p>
                         <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="display: block; background: #2563eb; color: white; text-align: center; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-decoration: none;">구글 맵 보기</a>
@@ -1702,13 +1716,14 @@ const defaultPlacesData = {
                     if(isNaN(lat) || isNaN(lng)) return;
                     bounds.push([lat, lng]);
                     
-                    let placeColor = getPlaceCategoryColor(evt);
-                    let markerClass = evt.recommended ? 'custom-map-marker-red' : 'custom-map-marker';
+                    let isFav = isPlaceFavorite(evt);
+                    let placeColor = getPlaceMapColor(evt, false);
+                    let markerClass = isFav ? 'custom-map-marker-red' : 'custom-map-marker';
 
                     let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="${markerClass}" style="background:${placeColor};">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
                     
                     let popupContent = `<div style="padding: 4px; width: 220px; max-width: 220px; word-break: break-word;">
-                        <span style="background: ${placeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소 ${evt.recommended ? '(즐겨찾기)' : ''}</span>
+                        <span style="background: ${placeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소 ${isFav ? '(즐겨찾기)' : ''}</span>
                         <h4 style="font-weight: bold; font-size: 14px; margin: 6px 0 4px 0; color: #0f172a; word-break: break-word;">${evt.name}</h4>
                         <p style="font-size: 12px; color: #64748b; margin-bottom: 8px; word-break: break-word; line-height: 1.4;">${evt.desc || '설명 없음'}</p>
                         <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="display: block; background: #2563eb; color: white; text-align: center; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-decoration: none;">구글 맵 보기</a>
@@ -1758,13 +1773,14 @@ const defaultPlacesData = {
                     if(isNaN(lat) || isNaN(lng)) return;
                     bounds.push([lat, lng]);
                     
-                    let placeColor = getPlaceCategoryColor(evt);
-                    let markerClass = evt.recommended ? 'custom-map-marker-red' : 'custom-map-marker';
+                    let isFav = isPlaceFavorite(evt);
+                    let placeColor = getPlaceMapColor(evt, false);
+                    let markerClass = isFav ? 'custom-map-marker-red' : 'custom-map-marker';
 
                     let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="${markerClass}" style="background:${placeColor};">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
                     
                     let popupContent = `<div style="padding: 4px; width: 220px; max-width: 220px; word-break: break-word;">
-                        <span style="background: ${placeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소 ${evt.recommended ? '(즐겨찾기)' : ''}</span>
+                        <span style="background: ${placeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소 ${isFav ? '(즐겨찾기)' : ''}</span>
                         <h4 style="font-weight: bold; font-size: 14px; margin: 6px 0 4px 0; color: #0f172a; word-break: break-word;">${evt.name}</h4>
                         <p style="font-size: 12px; color: #64748b; margin-bottom: 8px; word-break: break-word; line-height: 1.4;">${evt.desc || '설명 없음'}</p>
                         <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="display: block; background: #2563eb; color: white; text-align: center; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-decoration: none;">구글 맵 보기</a>
