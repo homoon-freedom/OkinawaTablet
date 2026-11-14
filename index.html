@@ -131,17 +131,17 @@
             
             <!-- 3-A. 장소 추가 패널 -->
             <div id="place-add-panel" class="flex flex-col h-full w-full bg-slate-50">
-                <div class="bg-gradient-to-r from-cyan-600 to-blue-700 px-3 sm:px-4 py-3 flex justify-between items-center text-white shrink-0 gap-2">
+                <div class="bg-gradient-to-r from-cyan-600 to-blue-700 px-3 lg:px-4 py-3.5 flex justify-between items-center text-white shrink-0 gap-2">
                     <div class="flex-1 min-w-0">
-                        <h3 class="font-bold text-[14px] sm:text-base truncate"><i class="fa-solid fa-map-pin mr-1.5"></i>장소 탐색 및 추가</h3>
-                        <p class="text-[10px] sm:text-[11px] text-cyan-100 mt-0.5 truncate">선택된 일정에 장소가 추가됩니다.</p>
+                        <h3 class="font-bold text-[15px] lg:text-base truncate"><i class="fa-solid fa-map-pin mr-1.5"></i>장소 탐색 및 추가</h3>
+                        <p class="text-[11px] lg:text-xs text-cyan-100 mt-0.5 truncate">선택된 일정에 장소가 추가됩니다.</p>
                     </div>
-                    <div class="flex flex-row items-center gap-1.5 shrink-0">
-                        <button onclick="openCategoryMapModal()" id="categoryMapBtn" class="bg-emerald-500 hover:bg-emerald-600 text-white py-1.5 px-2 sm:px-2.5 rounded-lg text-[11px] sm:text-xs font-bold shadow-sm flex items-center justify-center gap-1 transition whitespace-nowrap">
-                            <i class="fa-solid fa-map-location-dot"></i> 분류별 지도
+                    <div class="flex flex-row items-center gap-1.5 sm:gap-2 shrink-0">
+                        <button onclick="openCategoryMapModal()" id="categoryMapBtn" class="bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 px-3 lg:px-3.5 rounded-xl text-[13px] lg:text-[14px] font-bold shadow-sm flex items-center justify-center gap-1.5 transition whitespace-nowrap">
+                            <i class="fa-solid fa-map-location-dot"></i><span class="sm:hidden">지도</span><span class="hidden sm:inline">관광지 지도</span>
                         </button>
-                        <button onclick="openAddModal()" class="bg-indigo-500 hover:bg-indigo-600 text-white py-1.5 px-2 sm:px-2.5 rounded-lg text-[11px] sm:text-xs font-bold shadow-sm flex items-center justify-center gap-1 transition whitespace-nowrap">
-                            <i class="fa-solid fa-plus-circle"></i> 장소 직접 입력
+                        <button onclick="openAddModal()" class="bg-indigo-500 hover:bg-indigo-600 text-white py-2.5 px-3 lg:px-3.5 rounded-xl text-[13px] lg:text-[14px] font-bold shadow-sm flex items-center justify-center gap-1.5 transition whitespace-nowrap">
+                            <i class="fa-solid fa-plus-circle"></i><span class="sm:hidden">추가</span><span class="hidden sm:inline">장소 직접 입력</span>
                         </button>
                     </div>
                 </div>
@@ -549,18 +549,18 @@
     <!-- 등록된 장소 선택하여 추가 모달 -->
     <div id="selectPlaceModal" class="hidden fixed inset-0 z-[95] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col h-[85vh]">
-            <!-- 헤더 (우측 버튼 좌우 나란히 배치) -->
-            <div class="bg-gradient-to-r from-cyan-600 to-blue-700 px-3 sm:px-4 py-3 flex justify-between items-center text-white shrink-0 gap-2">
+            <!-- 헤더 (태블릿: 카테고리명 지도 / 장소 직접 입력, 모바일: 지도 / 추가) -->
+            <div class="bg-gradient-to-r from-cyan-600 to-blue-700 px-3 lg:px-4 py-3.5 flex justify-between items-center text-white shrink-0 gap-2">
                 <div class="flex-1 min-w-0">
-                    <h3 class="font-bold text-[14px] sm:text-base truncate"><i class="fa-solid fa-map-pin mr-1.5"></i>장소 탐색 및 추가</h3>
-                    <p id="select-modal-subtitle" class="text-[10px] sm:text-[11px] text-cyan-100 mt-0.5 truncate">선택된 일정에 장소가 추가됩니다.</p>
+                    <h3 class="font-bold text-[15px] lg:text-base truncate"><i class="fa-solid fa-map-pin mr-1.5"></i>장소 탐색 및 추가</h3>
+                    <p id="select-modal-subtitle" class="text-[11px] lg:text-xs text-cyan-100 mt-0.5 truncate">선택된 일정에 장소가 추가됩니다.</p>
                 </div>
-                <div class="flex flex-row items-center gap-1.5 shrink-0">
-                    <button onclick="openSelectCategoryMapModal()" id="selectCategoryMapBtn" class="bg-emerald-500 hover:bg-emerald-600 text-white py-1.5 px-2 sm:px-2.5 rounded-lg text-[11px] sm:text-xs font-bold shadow-sm flex items-center justify-center gap-1 transition whitespace-nowrap">
-                        <i class="fa-solid fa-map-location-dot"></i> 분류별 지도
+                <div class="flex flex-row items-center gap-1.5 sm:gap-2 shrink-0">
+                    <button onclick="openSelectCategoryMapModal()" id="selectCategoryMapBtn" class="bg-emerald-500 hover:bg-emerald-600 text-white py-2.5 px-3 lg:px-3.5 rounded-xl text-[13px] lg:text-[14px] font-bold shadow-sm flex items-center justify-center gap-1.5 transition whitespace-nowrap">
+                        <i class="fa-solid fa-map-location-dot"></i><span class="sm:hidden">지도</span><span class="hidden sm:inline">관광지 지도</span>
                     </button>
-                    <button onclick="openAddModal()" class="bg-indigo-500 hover:bg-indigo-600 text-white py-1.5 px-2 sm:px-2.5 rounded-lg text-[11px] sm:text-xs font-bold shadow-sm flex items-center justify-center gap-1 transition whitespace-nowrap">
-                        <i class="fa-solid fa-plus-circle"></i> 장소 직접 입력
+                    <button onclick="openAddModal()" class="bg-indigo-500 hover:bg-indigo-600 text-white py-2.5 px-3 lg:px-3.5 rounded-xl text-[13px] lg:text-[14px] font-bold shadow-sm flex items-center justify-center gap-1.5 transition whitespace-nowrap">
+                        <i class="fa-solid fa-plus-circle"></i><span class="sm:hidden">추가</span><span class="hidden sm:inline">장소 직접 입력</span>
                     </button>
                 </div>
             </div>
@@ -1301,7 +1301,7 @@ const defaultPlacesData = {
             const filteredPlaces = places.filter(p => p.group === currentCategory);
             
             const catMapBtn = document.getElementById('categoryMapBtn');
-            if(catMapBtn) catMapBtn.innerHTML = `<i class="fa-solid fa-map-location-dot"></i> 분류(${currentCategory}) 지도`;
+            if(catMapBtn) catMapBtn.innerHTML = `<i class="fa-solid fa-map-location-dot"></i><span class="sm:hidden">지도</span><span class="hidden sm:inline">${currentCategory} 지도</span>`;
 
             let html = '';
             if (filteredPlaces.length === 0) {
@@ -1933,7 +1933,7 @@ const defaultPlacesData = {
             });
 
             const catMapBtn = document.getElementById('selectCategoryMapBtn');
-            if(catMapBtn) catMapBtn.innerHTML = `<i class="fa-solid fa-map-location-dot"></i> 분류(${selectModalCategory}) 지도`;
+            if(catMapBtn) catMapBtn.innerHTML = `<i class="fa-solid fa-map-location-dot"></i><span class="sm:hidden">지도</span><span class="hidden sm:inline">${selectModalCategory} 지도</span>`;
         }
 
         function togglePlaceRecommendedFromModal(placeId) {
