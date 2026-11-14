@@ -511,17 +511,17 @@
         </div>
     </div>
 
-    <!-- 전체/카테고리 위치 지도 모달 (태블릿: 좌측 리스트 / 스마트폰: 하단 리스트) -->
+    <!-- 전체/카테고리 위치 지도 모달 (태블릿: 좌측 리스트 / 스마트폰: 하단 리스트 225px 높이) -->
     <div id="mapModal" class="hidden fixed inset-0 z-[100] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6">
         <div class="bg-white rounded-2xl w-full max-w-5xl shadow-2xl overflow-hidden flex flex-col h-[90vh]">
             <div class="bg-gradient-to-r from-emerald-600 to-teal-700 px-6 py-4 flex justify-between items-center text-white shrink-0">
                 <h3 id="map-modal-title" class="font-bold text-base"><i class="fa-solid fa-map-location-dot mr-2"></i>지도보기</h3>
                 <button onclick="closeMapModal()" class="text-white/80 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-            <!-- 반응형 레이아웃: 스마트폰은 세로 배치(하단 리스트), 태블릿은 md:flex-row-reverse(좌측 리스트) -->
+            <!-- 반응형 레이아웃: 스마트폰은 세로 배치(하단 리스트 225px), 태블릿은 md:flex-row-reverse(좌측 리스트) -->
             <div class="p-4 flex-1 bg-slate-100 flex flex-col md:flex-row-reverse gap-3 min-h-0">
-                <div id="dayMapContainer" class="w-full md:w-2/3 flex-1 rounded-xl shadow-inner border border-slate-300 z-10 min-h-[250px] md:min-h-0"></div>
-                <div id="mapPlacesList" class="w-full md:w-1/3 bg-white rounded-xl shadow-sm border border-slate-300 z-10 h-[150px] md:h-auto overflow-y-auto p-3 hidden shrink-0 custom-scrollbar"></div>
+                <div id="dayMapContainer" class="w-full md:w-2/3 flex-1 rounded-xl shadow-inner border border-slate-300 z-10 min-h-[200px] md:min-h-0"></div>
+                <div id="mapPlacesList" class="w-full md:w-1/3 bg-white rounded-xl shadow-sm border border-slate-300 z-10 h-[225px] md:h-auto overflow-y-auto p-3 hidden shrink-0 custom-scrollbar"></div>
             </div>
         </div>
     </div>
@@ -1610,6 +1610,23 @@ const defaultPlacesData = {
             }
         }
 
+        // 즐겨찾기(적색 유지) 및 분류별 색상 반환 함수
+        function getPlaceCategoryColor(evt) {
+            if (evt && evt.recommended) {
+                return '#ef4444'; // 즐겨찾기(추천) 적색 유지
+            }
+            const group = (evt && (evt.type === 'hotel' || evt.group === '호텔')) ? '호텔' : (evt && evt.group ? evt.group : '관광지');
+            const categoryColors = {
+                '관광지': '#0891b2',   // 청록색 (Cyan)
+                '식당': '#ea580c',     // 주황색 (Orange)
+                '카페': '#b45309',     // 갈색/호박색 (Amber)
+                '쇼핑': '#db2777',     // 분홍색 (Pink)
+                '액티비티': '#059669', // 초록색 (Emerald)
+                '호텔': '#4f46e5'      // 남보라색 (Indigo)
+            };
+            return categoryColors[group] || '#0891b2';
+        }
+
         function openDayMapModal(dayIdx) {
             const dayObj = tripData.days[dayIdx];
             if (!dayObj || !dayObj.events || dayObj.events.length === 0) { alert('지도에 표시할 일정이 없습니다. 장소를 먼저 추가해주세요.'); return; }
@@ -1628,14 +1645,16 @@ const defaultPlacesData = {
 
                 L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', { subdomains: ['0', '1', '2', '3'], maxZoom: 20, attribution: '&copy; Google Maps' }).addTo(leafletMap);
                 let bounds = [];
-                let listHtml = '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">';
+                let listHtml = '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-1 lg:grid-cols-2 gap-2">';
 
                 validEvents.forEach((evt, idx) => {
                     let lat = parseFloat(evt.lat); let lng = parseFloat(evt.lng); bounds.push([lat, lng]);
-                    let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="custom-map-marker">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
+                    let placeColor = getPlaceCategoryColor(evt);
+                    let markerClass = evt.recommended ? 'custom-map-marker-red' : 'custom-map-marker';
+                    let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="${markerClass}" style="background:${placeColor};">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
                     
                     let popupContent = `<div style="padding: 4px; width: 220px; max-width: 220px; word-break: break-word;">
-                        <span style="background: #0891b2; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소</span>
+                        <span style="background: ${placeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소 ${evt.recommended ? '(즐겨찾기)' : ''}</span>
                         <h4 style="font-weight: bold; font-size: 14px; margin: 6px 0 4px 0; color: #0f172a; word-break: break-word;">${evt.name}</h4>
                         <p style="font-size: 12px; color: #64748b; margin-bottom: 8px; word-break: break-word; line-height: 1.4;">${evt.desc || '설명 없음'}</p>
                         <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="display: block; background: #2563eb; color: white; text-align: center; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-decoration: none;">구글 맵 보기</a>
@@ -1644,8 +1663,8 @@ const defaultPlacesData = {
                     L.marker([lat, lng], { icon: numberIcon }).addTo(leafletMap).bindPopup(popupContent, { maxWidth: 240 });
                     
                     listHtml += `<div class="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-1.5 rounded-lg transition border border-transparent hover:border-slate-200" onclick="leafletMap.panTo([${lat}, ${lng}]); leafletMap.eachLayer(function(l){if(l.getLatLng && l.getLatLng().lat === ${lat} && l.getLatLng().lng === ${lng}){l.openPopup();}});">
-                        <span class="w-6 h-6 bg-[#0891b2] text-white rounded-full flex items-center justify-center text-[11px] font-bold shrink-0">${idx + 1}</span>
-                        <span class="font-bold text-slate-700 text-sm truncate" title="${evt.name}">${evt.name}</span>
+                        <span class="w-6 h-6 text-white rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style="background:${placeColor};">${idx + 1}</span>
+                        <span class="font-bold text-sm truncate" style="color:${placeColor};" title="${evt.name}">${evt.name}</span>
                     </div>`;
                 });
                 
@@ -1676,20 +1695,20 @@ const defaultPlacesData = {
                 leafletMap = L.map('dayMapContainer', { zoomControl: false });
                 L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', { subdomains: ['0', '1', '2', '3'], maxZoom: 20, attribution: '&copy; Google Maps' }).addTo(leafletMap);
                 let bounds = [];
-                let listHtml = '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">';
+                let listHtml = '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-1 lg:grid-cols-2 gap-2">';
 
                 filteredPlaces.forEach((evt, idx) => {
                     let lat = parseFloat(evt.lat); let lng = parseFloat(evt.lng);
                     if(isNaN(lat) || isNaN(lng)) return;
                     bounds.push([lat, lng]);
                     
+                    let placeColor = getPlaceCategoryColor(evt);
                     let markerClass = evt.recommended ? 'custom-map-marker-red' : 'custom-map-marker';
-                    let markerBgColor = evt.recommended ? '#ef4444' : '#10b981';
 
-                    let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="${markerClass}" style="background:${markerBgColor};">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
+                    let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="${markerClass}" style="background:${placeColor};">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
                     
                     let popupContent = `<div style="padding: 4px; width: 220px; max-width: 220px; word-break: break-word;">
-                        <span style="background: ${markerBgColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소 ${evt.recommended ? '(추천)' : ''}</span>
+                        <span style="background: ${placeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소 ${evt.recommended ? '(즐겨찾기)' : ''}</span>
                         <h4 style="font-weight: bold; font-size: 14px; margin: 6px 0 4px 0; color: #0f172a; word-break: break-word;">${evt.name}</h4>
                         <p style="font-size: 12px; color: #64748b; margin-bottom: 8px; word-break: break-word; line-height: 1.4;">${evt.desc || '설명 없음'}</p>
                         <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="display: block; background: #2563eb; color: white; text-align: center; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-decoration: none;">구글 맵 보기</a>
@@ -1698,8 +1717,8 @@ const defaultPlacesData = {
                     L.marker([lat, lng], { icon: numberIcon }).addTo(leafletMap).bindPopup(popupContent, { maxWidth: 240 });
                     
                     listHtml += `<div class="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-1.5 rounded-lg transition border border-transparent hover:border-slate-200" onclick="leafletMap.panTo([${lat}, ${lng}]); leafletMap.eachLayer(function(l){if(l.getLatLng && l.getLatLng().lat === ${lat} && l.getLatLng().lng === ${lng}){l.openPopup();}});">
-                        <span class="w-6 h-6 text-white rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style="background:${markerBgColor};">${idx + 1}</span>
-                        <span class="font-bold text-slate-700 text-sm truncate" title="${evt.name}">${evt.name}</span>
+                        <span class="w-6 h-6 text-white rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style="background:${placeColor};">${idx + 1}</span>
+                        <span class="font-bold text-sm truncate" style="color:${placeColor};" title="${evt.name}">${evt.name}</span>
                     </div>`;
                 });
                 
@@ -1732,20 +1751,20 @@ const defaultPlacesData = {
                 leafletMap = L.map('dayMapContainer', { zoomControl: false });
                 L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&hl=ko&x={x}&y={y}&z={z}', { subdomains: ['0', '1', '2', '3'], maxZoom: 20, attribution: '&copy; Google Maps' }).addTo(leafletMap);
                 let bounds = [];
-                let listHtml = '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">';
+                let listHtml = '<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-1 lg:grid-cols-2 gap-2">';
 
                 filteredPlaces.forEach((evt, idx) => {
                     let lat = parseFloat(evt.lat); let lng = parseFloat(evt.lng);
                     if(isNaN(lat) || isNaN(lng)) return;
                     bounds.push([lat, lng]);
                     
+                    let placeColor = getPlaceCategoryColor(evt);
                     let markerClass = evt.recommended ? 'custom-map-marker-red' : 'custom-map-marker';
-                    let markerBgColor = evt.recommended ? '#ef4444' : '#10b981';
 
-                    let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="${markerClass}" style="background:${markerBgColor};">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
+                    let numberIcon = L.divIcon({ className: 'custom-marker-container', html: `<div class="${markerClass}" style="background:${placeColor};">${idx + 1}</div>`, iconSize: [28, 28], iconAnchor: [14, 14] });
                     
                     let popupContent = `<div style="padding: 4px; width: 220px; max-width: 220px; word-break: break-word;">
-                        <span style="background: ${markerBgColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소 ${evt.recommended ? '(추천)' : ''}</span>
+                        <span style="background: ${placeColor}; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold;">${idx + 1}번 장소 ${evt.recommended ? '(즐겨찾기)' : ''}</span>
                         <h4 style="font-weight: bold; font-size: 14px; margin: 6px 0 4px 0; color: #0f172a; word-break: break-word;">${evt.name}</h4>
                         <p style="font-size: 12px; color: #64748b; margin-bottom: 8px; word-break: break-word; line-height: 1.4;">${evt.desc || '설명 없음'}</p>
                         <a href="https://www.google.com/maps/search/?api=1&query=${lat},${lng}" target="_blank" style="display: block; background: #2563eb; color: white; text-align: center; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; text-decoration: none;">구글 맵 보기</a>
@@ -1754,8 +1773,8 @@ const defaultPlacesData = {
                     L.marker([lat, lng], { icon: numberIcon }).addTo(leafletMap).bindPopup(popupContent, { maxWidth: 240 });
                     
                     listHtml += `<div class="flex items-center gap-2 cursor-pointer hover:bg-slate-100 p-1.5 rounded-lg transition border border-transparent hover:border-slate-200" onclick="leafletMap.panTo([${lat}, ${lng}]); leafletMap.eachLayer(function(l){if(l.getLatLng && l.getLatLng().lat === ${lat} && l.getLatLng().lng === ${lng}){l.openPopup();}});">
-                        <span class="w-6 h-6 text-white rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style="background:${markerBgColor};">${idx + 1}</span>
-                        <span class="font-bold text-slate-700 text-sm truncate" title="${evt.name}">${evt.name}</span>
+                        <span class="w-6 h-6 text-white rounded-full flex items-center justify-center text-[11px] font-bold shrink-0" style="background:${placeColor};">${idx + 1}</span>
+                        <span class="font-bold text-sm truncate" style="color:${placeColor};" title="${evt.name}">${evt.name}</span>
                     </div>`;
                 });
                 
