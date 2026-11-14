@@ -90,6 +90,44 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* 체크리스트 모달 내부 스타일 */
+        .check-textarea {
+            border: 1px solid transparent;
+            background: transparent;
+            pointer-events: none;
+            resize: none;
+            overflow: hidden;
+            word-break: break-word;
+            min-height: 36px;
+            padding: 6px 8px;
+            margin: 0;
+            box-sizing: border-box;
+            line-height: 1.4;
+            font-family: inherit;
+            font-size: 14px !important;
+            color: #1e293b;
+            border-radius: 8px;
+        }
+        #checklistModal.editing .check-textarea {
+            border: 1px solid #cbd5e1;
+            background-color: #f8fafc;
+            pointer-events: auto;
+        }
+        #checklistModal.editing .check-textarea:focus {
+            outline: none;
+            border-color: #0891b2;
+            background-color: #ffffff;
+        }
+        .checklist-edit-only {
+            display: none !important;
+        }
+        #checklistModal.editing .checklist-edit-only {
+            display: flex !important;
+        }
+        #checklistModal.editing .checklist-add-btn {
+            display: inline-flex !important;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800 relative">
@@ -116,7 +154,7 @@
     <!-- Main Layout (50:50 비율 적용) -->
     <main class="max-w-[1500px] mx-auto w-full px-2 sm:px-4 py-4 sm:py-6 flex flex-col md:flex-row gap-4 items-start">
         
-        <!-- 탭 (전체일정 ~ Day 8) -->
+        <!-- 탭 (체크리스트 + 전체일정 ~ Day 8) -->
         <nav id="day-tabs-container" class="w-full md:w-[90px] lg:w-[100px] shrink-0 sticky z-[35] bg-white border border-slate-200 rounded-xl p-1.5 shadow-sm transition-all overflow-hidden md:max-h-[calc(100vh-140px)] md:overflow-y-auto hide-scrollbar">
             <div id="day-tabs" class="flex flex-row md:flex-col overflow-x-auto gap-1.5 hide-scrollbar w-full items-center md:items-stretch px-1 md:px-0"></div>
         </nav>
@@ -330,6 +368,37 @@
         </aside>
     </main>
 
+    <!-- 체크리스트 모달창 (필수 확인 및 어플 + 준비물 리스트 통합) -->
+    <div id="checklistModal" class="hidden fixed inset-0 z-[95] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div class="bg-gradient-to-r from-cyan-600 to-blue-700 px-5 py-4 flex justify-between items-center text-white shrink-0">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-list-check text-lg"></i>
+                    <h3 class="font-bold text-base">체크리스트</h3>
+                    <span id="checklist-progress-badge" class="text-xs bg-white/20 text-white px-2 py-0.5 rounded-full font-bold">0 / 9</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button type="button" onclick="addChecklistItem()" class="checklist-add-btn hidden bg-white text-cyan-700 hover:bg-cyan-50 px-2.5 py-1 rounded-lg text-xs font-bold transition shadow-sm items-center gap-1">
+                        <i class="fa-solid fa-plus"></i> 추가
+                    </button>
+                    <button type="button" id="checklistEditBtn" onclick="toggleChecklistEditMode()" class="bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg text-xs font-bold transition border border-white/30">
+                        수정
+                    </button>
+                    <button type="button" onclick="closeChecklistModal()" class="text-white/80 hover:text-white ml-1" title="닫기">
+                        <i class="fa-solid fa-xmark text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div id="checklist-items-container" class="p-4 overflow-y-auto custom-scrollbar flex-1 space-y-2 bg-slate-50"></div>
+
+            <div class="p-3 bg-white border-t border-slate-200 shrink-0 flex justify-between items-center">
+                <span class="text-xs text-slate-500 font-medium">체크 상태는 자동 저장됩니다.</span>
+                <button type="button" onclick="closeChecklistModal()" class="bg-slate-800 hover:bg-slate-900 text-white px-4 py-2 rounded-xl text-xs font-bold transition shadow-sm">닫기</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 설정 모달 -->
     <div id="settingsModal" class="hidden fixed inset-0 z-[80] bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
@@ -398,7 +467,7 @@
             </div>
             
             <div class="p-5 overflow-y-auto custom-scrollbar flex-1 space-y-4">
-                <p class="text-sm text-slate-600 mb-2">백업할 항목을 세부적으로 선택하세요. (경비 데이터는 항상 포함됩니다)</p>
+                <p class="text-sm text-slate-600 mb-2">백업할 항목을 세부적으로 선택하세요. (경비 및 체크리스트 데이터는 항상 포함됩니다)</p>
 
                 <!-- 기본 설정 -->
                 <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 shadow-sm cursor-pointer hover:bg-slate-100 transition" onclick="toggleCheckbox('backup_meta')">
@@ -478,6 +547,12 @@
                             <label class="flex items-center gap-2 cursor-pointer w-full font-bold text-slate-800 text-[15px]">
                                 <input type="checkbox" id="restore_expense" checked class="w-5 h-5 accent-amber-500 rounded pointer-events-none" onclick="event.stopPropagation()">
                                 경비 정산 데이터 복구
+                            </label>
+                        </div>
+                        <div class="border border-slate-200 rounded-xl p-3 bg-slate-50 shadow-sm cursor-pointer hover:bg-slate-100 transition" onclick="toggleCheckbox('restore_checklist')">
+                            <label class="flex items-center gap-2 cursor-pointer w-full font-bold text-slate-800 text-[15px]">
+                                <input type="checkbox" id="restore_checklist" checked class="w-5 h-5 accent-amber-500 rounded pointer-events-none" onclick="event.stopPropagation()">
+                                체크리스트 데이터 복구
                             </label>
                         </div>
 
@@ -697,6 +772,177 @@ const defaultPlacesData = {
             if (savedTrip) tripData = JSON.parse(savedTrip);
         } catch(e) { console.error('기존 일정 데이터 로드 실패'); }
 
+        // --- 체크리스트 데이터 (필수 확인 및 어플 + 준비물 리스트 통합) ---
+        const defaultChecklistItems = [
+            { id: 'chk-1', text: "여권 만기일 확인 (출발일 기준 6개월 이상)", checked: false },
+            { id: 'chk-2', text: "입국 신고서 어플 (Visit Japan 등)", checked: false },
+            { id: 'chk-3', text: "구글 맵스 (오프라인 지도 및 장소)", checked: false },
+            { id: 'chk-4', text: "환전 및 결제 어플 (트래블월렛 등)", checked: false },
+            { id: 'chk-5', text: "여권 및 신분증 (사본 포함)", checked: false },
+            { id: 'chk-6', text: "항공권 E-Ticket / 숙소 바우처", checked: false },
+            { id: 'chk-7', text: "해외용 멀티 어댑터", checked: false },
+            { id: 'chk-8', text: "보조배터리 및 케이블 (기내 반입)", checked: false },
+            { id: 'chk-9', text: "상비약 (소화제, 진통제 등)", checked: false }
+        ];
+
+        let checklistItems = JSON.parse(JSON.stringify(defaultChecklistItems));
+        let isChecklistEditing = false;
+
+        try {
+            const savedChecklist = localStorage.getItem('okinawa_checklistItems');
+            if (savedChecklist) {
+                const parsedList = JSON.parse(savedChecklist);
+                if (Array.isArray(parsedList)) {
+                    checklistItems = parsedList;
+                }
+            }
+        } catch(e) { console.error('기존 체크리스트 데이터 로드 실패'); }
+
+        function saveChecklistToLocalStorage() {
+            localStorage.setItem('okinawa_checklistItems', JSON.stringify(checklistItems));
+            updateChecklistBadge();
+        }
+
+        function updateChecklistBadge() {
+            const badge = document.getElementById('checklist-progress-badge');
+            if (!badge) return;
+            const total = checklistItems.length;
+            const checkedCount = checklistItems.filter(item => item.checked).length;
+            badge.innerText = `${checkedCount} / ${total}`;
+        }
+
+        function autoResizeChecklistTextarea(textarea) {
+            if (!textarea) return;
+            textarea.style.height = 'auto';
+            textarea.style.height = textarea.scrollHeight + 'px';
+        }
+
+        function openChecklistModal() {
+            const modal = document.getElementById('checklistModal');
+            isChecklistEditing = false;
+            modal.classList.remove('editing');
+            const editBtn = document.getElementById('checklistEditBtn');
+            if (editBtn) {
+                editBtn.innerText = '수정';
+                editBtn.className = 'bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg text-xs font-bold transition border border-white/30';
+            }
+            renderChecklist();
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.querySelectorAll('.check-textarea').forEach(ta => autoResizeChecklistTextarea(ta));
+            }, 20);
+        }
+
+        function closeChecklistModal() {
+            const modal = document.getElementById('checklistModal');
+            if (isChecklistEditing) {
+                isChecklistEditing = false;
+                modal.classList.remove('editing');
+            }
+            saveChecklistToLocalStorage();
+            modal.classList.add('hidden');
+        }
+
+        function toggleChecklistEditMode() {
+            const modal = document.getElementById('checklistModal');
+            const editBtn = document.getElementById('checklistEditBtn');
+            isChecklistEditing = !isChecklistEditing;
+
+            if (isChecklistEditing) {
+                modal.classList.add('editing');
+                editBtn.innerText = '완료';
+                editBtn.className = 'bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-bold transition shadow-sm';
+            } else {
+                modal.classList.remove('editing');
+                editBtn.innerText = '수정';
+                editBtn.className = 'bg-white/20 hover:bg-white/30 text-white px-3 py-1 rounded-lg text-xs font-bold transition border border-white/30';
+                saveChecklistToLocalStorage();
+            }
+
+            setTimeout(() => {
+                modal.querySelectorAll('.check-textarea').forEach(ta => autoResizeChecklistTextarea(ta));
+            }, 20);
+        }
+
+        function renderChecklist() {
+            const container = document.getElementById('checklist-items-container');
+            if (!container) return;
+
+            if (checklistItems.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-slate-400 text-sm">등록된 체크리스트 항목이 없습니다. 우측 상단 '수정'을 눌러 항목을 추가해보세요.</div>`;
+                updateChecklistBadge();
+                return;
+            }
+
+            container.innerHTML = checklistItems.map((item, idx) => `
+                <div class="flex items-center bg-white border border-slate-200 rounded-xl px-3 py-1.5 gap-2 shadow-sm transition hover:border-cyan-200">
+                    <input type="checkbox" ${item.checked ? 'checked' : ''} onchange="toggleChecklistItemCheck(${idx}, this.checked)"
+                        class="w-5 h-5 accent-cyan-600 cursor-pointer shrink-0 rounded">
+                    <textarea class="check-textarea flex-1 min-w-0 ${item.checked ? 'line-through text-slate-400' : 'text-slate-800'}" rows="1" placeholder="내용을 입력하세요"
+                        oninput="updateChecklistItemText(${idx}, this)">${item.text}</textarea>
+                    <div class="checklist-edit-only items-center gap-1 shrink-0">
+                        <button type="button" onclick="moveChecklistItem(${idx}, -1)" class="w-6 h-6 rounded border border-slate-200 bg-slate-50 hover:bg-slate-200 text-slate-600 text-xs flex items-center justify-center transition" title="위로">↑</button>
+                        <button type="button" onclick="moveChecklistItem(${idx}, 1)" class="w-6 h-6 rounded border border-slate-200 bg-slate-50 hover:bg-slate-200 text-slate-600 text-xs flex items-center justify-center transition" title="아래로">↓</button>
+                        <button type="button" onclick="removeChecklistItem(${idx})" class="w-6 h-6 rounded text-rose-500 hover:bg-rose-50 text-sm font-bold flex items-center justify-center transition" title="삭제">✕</button>
+                    </div>
+                </div>
+            `).join('');
+
+            updateChecklistBadge();
+            setTimeout(() => {
+                container.querySelectorAll('.check-textarea').forEach(ta => autoResizeChecklistTextarea(ta));
+            }, 10);
+        }
+
+        function toggleChecklistItemCheck(idx, isChecked) {
+            if (!checklistItems[idx]) return;
+            checklistItems[idx].checked = isChecked;
+            saveChecklistToLocalStorage();
+            renderChecklist();
+        }
+
+        function updateChecklistItemText(idx, textareaEl) {
+            if (!checklistItems[idx]) return;
+            checklistItems[idx].text = textareaEl.value;
+            autoResizeChecklistTextarea(textareaEl);
+            saveChecklistToLocalStorage();
+        }
+
+        function addChecklistItem() {
+            checklistItems.push({
+                id: 'chk-' + Date.now() + '-' + Math.floor(Math.random() * 1000),
+                text: '',
+                checked: false
+            });
+            saveChecklistToLocalStorage();
+            renderChecklist();
+            setTimeout(() => {
+                const container = document.getElementById('checklist-items-container');
+                if (container) {
+                    const textareas = container.querySelectorAll('.check-textarea');
+                    if (textareas.length > 0) {
+                        textareas[textareas.length - 1].focus();
+                    }
+                }
+            }, 30);
+        }
+
+        function removeChecklistItem(idx) {
+            checklistItems.splice(idx, 1);
+            saveChecklistToLocalStorage();
+            renderChecklist();
+        }
+
+        function moveChecklistItem(idx, dir) {
+            const targetIdx = idx + dir;
+            if (targetIdx < 0 || targetIdx >= checklistItems.length) return;
+            const temp = checklistItems[idx];
+            checklistItems[idx] = checklistItems[targetIdx];
+            checklistItems[targetIdx] = temp;
+            saveChecklistToLocalStorage();
+            renderChecklist();
+        }
+
         let currentRegion = 'south'; 
         let currentCategory = '관광지';
         let addMode = 'place'; 
@@ -897,6 +1143,7 @@ const defaultPlacesData = {
         function saveDataToLocalStorage() {
             localStorage.setItem('okinawa_placesData', JSON.stringify(placesData));
             localStorage.setItem('okinawa_tripData', JSON.stringify(tripData));
+            localStorage.setItem('okinawa_checklistItems', JSON.stringify(checklistItems));
         }
 
         function manualSaveData() { saveDataToLocalStorage(); alert('일정이 브라우저에 안전하게 저장되었습니다!'); }
@@ -993,11 +1240,12 @@ const defaultPlacesData = {
             };
 
             const finalPayload = {
-                version: "2.0",
+                version: "2.1",
                 exportedAt: new Date().toLocaleString(),
                 tripData: exportTripData,
                 placesData: exportPlacesData,
-                expenseData: expensePayload
+                expenseData: expensePayload,
+                checklistItems: checklistItems
             };
 
             const jsonStr = JSON.stringify(finalPayload, null, 2);
@@ -1123,12 +1371,14 @@ const defaultPlacesData = {
             
             const restoreMeta = document.getElementById('restore_meta').checked;
             const restoreExp = document.getElementById('restore_expense').checked;
+            const restoreChk = document.getElementById('restore_checklist').checked;
             const dayChks = document.querySelectorAll('.restore-day-chk:checked');
             const placeChks = document.querySelectorAll('.restore-place-chk:checked');
 
             let impTrip = restoreImportedData.tripData || restoreImportedData;
             let impPlaces = restoreImportedData.placesData || {south:[], central:[], north:[]};
             let impExp = restoreImportedData.expenseData || null;
+            let impChk = restoreImportedData.checklistItems || null;
 
             if (restoreMeta && impTrip.startDate && impTrip.endDate) {
                 tripData.startDate = impTrip.startDate;
@@ -1181,6 +1431,12 @@ const defaultPlacesData = {
                 }
                 autoSaveExpenseAppData();
                 initExpenseApp(); 
+            }
+
+            if (restoreChk && Array.isArray(impChk)) {
+                checklistItems = JSON.parse(JSON.stringify(impChk));
+                saveChecklistToLocalStorage();
+                renderChecklist();
             }
 
             saveDataToLocalStorage();
@@ -1579,7 +1835,12 @@ const defaultPlacesData = {
         function renderPlanner() {
             const days = tripData.days || [];
             
-            let tabsHtml = `<button onclick="setActiveDay(-1)" class="w-auto md:w-full shrink-0 px-3.5 py-2 md:px-2 md:py-3 rounded-lg text-[13px] md:text-sm font-bold transition text-center whitespace-nowrap border ${tripData.activeDay === -1 ? 'bg-cyan-600 border-cyan-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50'}">전체일정</button>`;
+            // 스마트폰: 전체일정 왼쪽에 체크 아이콘만 / 태블릿: 전체일정 위에 체크 아이콘 + '체크' 텍스트
+            let tabsHtml = `<button onclick="openChecklistModal()" class="w-auto md:w-full shrink-0 px-3 py-2 md:px-2 md:py-3 rounded-lg text-[13px] md:text-sm font-bold transition text-center whitespace-nowrap border bg-emerald-50 border-emerald-200 text-emerald-700 hover:bg-emerald-100 shadow-sm flex items-center justify-center gap-1" title="체크리스트">
+                <i class="fa-solid fa-list-check"></i><span class="hidden md:inline">체크</span>
+            </button>`;
+
+            tabsHtml += `<button onclick="setActiveDay(-1)" class="w-auto md:w-full shrink-0 px-3.5 py-2 md:px-2 md:py-3 rounded-lg text-[13px] md:text-sm font-bold transition text-center whitespace-nowrap border ${tripData.activeDay === -1 ? 'bg-cyan-600 border-cyan-600 text-white shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50'}">전체일정</button>`;
             
             tabsHtml += days.map((d, idx) => `
                 <button onclick="setActiveDay(${idx})" class="w-auto md:w-full shrink-0 px-3.5 py-2 md:px-2 md:py-3 rounded-lg text-[13px] md:text-[15px] font-bold transition text-center whitespace-nowrap border ${idx === tripData.activeDay ? 'bg-cyan-50 border-cyan-400 text-cyan-800 shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:text-slate-700 hover:bg-slate-50'}">
